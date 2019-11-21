@@ -1,14 +1,12 @@
 #!/bin/bash
 #SBATCH --job-name=ADEL24_cpl
-#SBATCH --time=0:10:00
+#SBATCH --time=0:30:00
 #SBATCH --mail-type=ALL
 #SBATCH --open-mode=append
 #SBATCH --switches=1@47:50:00
-#SBATCH --ntasks=11
+#SBATCH --ntasks=13
 #SBATCH --partition=debug
 #SBATCH --mem-per-cpu=3072
-
-
 
 ##################################################################
 #   Script to run the coupled model NEMO MAR                     #
@@ -19,24 +17,23 @@
 # Experiment options #
 #--------------------#
 
-exp_name=ADEL24_cpl_00
+exp_name=CPL-001
 run_start_date="2011-01-01"
-run_duration="1 year"
-info_file="nemo.info"
-
-zap=false
+run_duration="3 day"
+info_file="nemo.info.$exp_name"
 
 leg_length="1 day"  # Parceque dans MAR c'est plus ou moins : en dur / fixe ?
 rst_freq=${leg_length}
 
 homedir=/home/ucl/elic/phuot/script_cpl_sub2/
-scratch=/scratch/ucl/elic/phuot/
-archive_dir=/scratch/ucl/elic/$USER/nemo/archive/${exp_name}
-
+scratchd=/scratch/ucl/elic/${USER}/
+archive_dir=${scratchd}nemo/archive/${exp_name}
 
 nem_exe_file=nemo.exe
-mar_exe_file=MAR_sivelo.exe
+mar_exe_file=MAR_sivelo2.exe
 xio_exe_file=xios_server.exe
+
+echo ${homedir}
 
 #------------------#
 # NEMO params      #
@@ -46,13 +43,16 @@ nem_time_step_sec=900
 lim_time_step_sec=900
 nem_restart_offset=0
 
-#
-# MAR parm 
-#
+oasis_dir=${scratchd}oasis
+code_dir=${scratchd}codes
+ini_data_dir=${scratchd}data
+
+#-----------------#
+#    MAR parm     #
+#-----------------#
 
 dt=90
 DIR="/scratch/ucl/elic/phuot/CK/"
-
 
 #------------------#
 # Coupling options #
@@ -60,7 +60,7 @@ DIR="/scratch/ucl/elic/phuot/CK/"
 
 o2afreq=900
 a2ofreq=900
-cploutopt=EXPOUT
+cploutopt=EXPORTED
 
 #------------------#
 # Job options      #
@@ -73,26 +73,20 @@ extralibs_list=""
 
 #sbatch opts
 
-
-nem_numproc=8
+nem_numproc=10
 xio_numproc=2
 mar_numproc=1
-tot_numproc=($nem_numproc+$xio_numproc+${mar_numproc})
-
 
 #------------------#
 # Modules          #
 #------------------#
 
-
 module load ${module_list:?}
 export LD_LIBRARY_PATH=${LD_LIBRARY_PATH:+${LD_LIBRARY_PATH}:}"${extralibs_list}"
 
-
 #--------------------------------------------#
-#    No more options / params to set ???     #
+#    Prepare the RunDIr                      #
 #--------------------------------------------#
-
 
 function leap_days()
 {
@@ -127,6 +121,8 @@ function leap_days()
 #    Actual execution of the thing      #
 #---------------------------------------#
 
+cd ${homedir}
+
 # find run start and end, and leg duration !
 run_start_date=$(date -uR -d "${run_start_date}")
 run_end_date="${run_start_date} + ${run_duration:?}"
@@ -134,7 +130,8 @@ run_end_date=$(date -uR -d "${run_end_date}")
 run_start_epoch=$(date -u -d"${run_start_date}" +%s)
 run_end_epoch=$(date -u -d"${run_end_date}" +%s)
 
-[[ -r "${info_file:?}" ]] && source "${info_file:?}"  # READ info file if it exist ?
+# Maybe we need to find a way to bypass this if info_file exists but we don't want to use it ?
+[[ -r "${ini_data_dir}/${info_file:?}" ]] && source "${ini_data_dir}/${info_file:?}"  # READ info file if it exist ?
 
 leg_start_date=${leg_end_date:-$run_start_date}
 leg_number=$((${leg_number:=0}+1))
@@ -142,6 +139,7 @@ leg_start_epoch=$(date -u -d "${leg_start_date}" +%s)
 leg_end_epoch=$(date -u -d "${leg_start_date:?} + ${leg_length}" +%s)
 leg_end_date=$(date -uR -d@"${leg_end_epoch}")
 leg_length_sec=$(( leg_end_epoch - leg_start_epoch ))
+leg_start_sec=$(( leg_start_epoch - run_start_epoch ))
 leg_length_sec=$(( leg_length_sec - $(leap_days "${leg_start_date}" "${leg_end_date}")*24*3600 ))
 leg_start_sec=$(( leg_start_sec - $(leap_days "${run_start_date}" "${leg_start_date}")*24*3600 ))
 leg_end_sec=$(( leg_end_epoch - run_start_epoch ))
@@ -152,13 +150,16 @@ YYYY=$(date -d "${leg_start_date}" +%Y)
 MM=$(date -d "${leg_start_date}" +%m)
 DDs=$(date -d "${leg_start_date}" +%d)
 
+YYYYb=$(date -d "${leg_start_date} - ${leg_length}" +%Y)
+MMb=$(date -d "${leg_start_date} - ${leg_length}" +%m)
+DDb=$(date -d "${leg_start_date} - ${leg_length}" +%d)
 
 #----------------------------------------#
 # Create rundir and link / gather files  #
 #----------------------------------------#
 
 
-run_dir=${scratch}/CPL-run-${YYYY}-${MM}-${DDs}
+run_dir=${scratchd}/${exp_name}-${YYYY}-${MM}-${DDs}
 
 if [ ! -d ${run_dir:?} ]
 then
@@ -167,7 +168,6 @@ fi
 
 source prep_nemo.sh
 cd $homedir
-
 source prep_mar.sh
  [ $? -eq 4 ] && exit #error in prep_mar!
 
@@ -175,6 +175,11 @@ source prep_mar.sh
 #    Actual execution of the thing      #
 #---------------------------------------#
 
+if (( leg_number > 1 ))
+then
+   cp ${scratchd}/${exp_name}-${YYYYb}-${MMb}-${DDb}/${exp_name}*_restart_?ce* ${run_dir}
+   cp ${scratchd}/${exp_name}-${YYYYb}-${MMb}-${DDb}/nemo.info ${run_dir}
+fi
 
 (( leg_number > 1 )) && leg_is_restart=true || leg_is_restart=false
 
@@ -196,6 +201,7 @@ fi
 cd $homedir
 
 # Build the namelist / namcouple
+
 source build_namelist_cfg.sh > namelist_cfg
 source build_namcouple.sh > namcouple
 mv namelist_cfg ${run_dir}
@@ -231,7 +237,6 @@ cd ${run_dir}
  rm -f MAR.log MARphy.out &> /dev/null
 
  time_begin=$(date +%s)
-# mpirun -np "${mar_numproc}" ./"${mar_exe_file:?}" > log_cpl
  mpirun -np "${nem_numproc:?}" ./"${nem_exe_file:?}" : -np "${xio_numproc:?}" ./"${xio_exe_file:?}" :  -np "${mar_numproc}" ./"${mar_exe_file:?}" > log_cpl
  time_end=$(date +%s)
 
@@ -248,7 +253,6 @@ cd ${run_dir}
 # Move outputs and stuff out of rundir 
 #
 
-exit 0
 
 formatted_leg_number=$(printf %03d $((leg_number)))
 outdir="${archive_dir:?}/output/${formatted_leg_number}"
@@ -280,20 +284,25 @@ mkdir -p "${outdir}"
 
 #Warning do no deal like this for sub monthly legs
 
-MMn=$(( $MM + 1)
+#MMn=$(( $MM + 1))
 
-if [ $MMn -gt 12 ] ; then
-   $MMn=1
-   $YYYYn=$(( $YYYY + 1)
- fi
+#if [ $MMn -gt 12 ] ; then
+#   $MMn=1
+#   $YYYYn=$(( $YYYY + 1))
+#fi
 
+# Another way to do it ....
+date_next=$(date -u -d "${leg_end_date:?} + ${leg_length}")
 
+YYYYn=$(date -d "${date}" +%Y)
+MMn=$(date -d "${date}" +%m)
+DDn=$(date -d "${date}" +%d)
 
 gzip ICE*.nc
-tar czf MARsim_${YYYYn}${MMn}.tgz MARdom.dat MARcld.DAT MARcva.DAT MARdyn.DAT MARsol.DAT MARsvt.DAT MARtur.DAT
+tar czf MARsim_${YYYYn}${MMn}${DDn}.tgz MARdom.dat MARcld.DAT MARcva.DAT MARdyn.DAT MARsol.DAT MARsvt.DAT MARtur.DAT
 
-mv      MARsim_${YYYYn}${MMn}.tgz $DIR/MARsim/
-[ ! -f $DIR/MARsim/MARsim_${YYYYn}${MMn}.tgz ] && echo "ERROR MARsim_${YYYYn}${MMn}.tgz" && exit 8
+mv      MARsim_${YYYYn}${MMn}${DDn}.tgz $DIR/MARsim/
+[ ! -f $DIR/MARsim/MARsim_${YYYYn}${MMn}${DDn}.tgz ] && echo "ERROR MARsim_${YYYYn}${MMn}${DDn}.tgz" && exit 8
 
 
 
@@ -321,7 +330,7 @@ current_date=$(date +'%F %T')
   echo "leg_end_date=\"${leg_end_date}\""
 } | tee -a "${info_file}"
 
-
+cp ${info_file} ${ini_data_dir}/
 
 #
 # End of leg: resubmit or not ?

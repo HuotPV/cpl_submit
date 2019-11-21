@@ -13,8 +13,14 @@
 [ ${MM} -eq 12 ] && DD=31
 echo $MM $DDs
 
+# need to use leg_length here ....
+
+DDD=$(( ${leg_length_sec} / 86400 ))
+echo Number of days in prep mar
+echo ${leg_length_sec}
+echo $DDD
 nbo=$((21600 / $dt))
-np=$(( $DD * 4 ))
+np=$(( $DDD * 4 ))
 
 source build_marctr.sh > MARctr.dat #TO DO chemin vers build car a refaire si necessaire dans le run?
 
