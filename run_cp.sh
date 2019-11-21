@@ -17,7 +17,7 @@
 # Experiment options #
 #--------------------#
 
-exp_name=CPL-001
+exp_name=CPL-004
 run_start_date="2011-01-01"
 run_duration="3 day"
 info_file="nemo.info.$exp_name"
@@ -25,7 +25,7 @@ info_file="nemo.info.$exp_name"
 leg_length="1 day"  # Parceque dans MAR c'est plus ou moins : en dur / fixe ?
 rst_freq=${leg_length}
 
-homedir=/home/ucl/elic/phuot/script_cpl_sub2/
+homedir=/home/ucl/elic/phuot/script_cpl_sub2/cpl_submit/
 scratchd=/scratch/ucl/elic/${USER}/
 archive_dir=${scratchd}nemo/archive/${exp_name}
 
@@ -61,6 +61,12 @@ DIR="/scratch/ucl/elic/phuot/CK/"
 o2afreq=900
 a2ofreq=900
 cploutopt=EXPORTED
+cpl_oce_rst=start_ocean_cpl_025.nc
+cpl_atm_rst=start_atmos_cpl_new.nc
+ndx=124
+ndy=144
+mdx=150
+mdy=140
 
 #------------------#
 # Job options      #
@@ -179,6 +185,8 @@ if (( leg_number > 1 ))
 then
    cp ${scratchd}/${exp_name}-${YYYYb}-${MMb}-${DDb}/${exp_name}*_restart_?ce* ${run_dir}
    cp ${scratchd}/${exp_name}-${YYYYb}-${MMb}-${DDb}/nemo.info ${run_dir}
+   cp ${scratchd}/${exp_name}-${YYYYb}-${MMb}-${DDb}/${cpl_oce_rst} ${run_dir}
+   cp ${scratchd}/${exp_name}-${YYYYb}-${MMb}-${DDb}/${cpl_atm_rst} ${run_dir}
 fi
 
 (( leg_number > 1 )) && leg_is_restart=true || leg_is_restart=false
