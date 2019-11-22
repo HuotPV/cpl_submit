@@ -4,9 +4,11 @@
 #SBATCH --mail-type=ALL
 #SBATCH --open-mode=append
 #SBATCH --switches=1@47:50:00
-#SBATCH --ntasks=13
+#SBATCH --ntasks=7
 #SBATCH --partition=debug
 #SBATCH --mem-per-cpu=3072
+#SBATCH --output=JAslurm-%j.out
+set -ueo pipefail
 
 ##################################################################
 #   Script to run the coupled model NEMO MAR                     #
@@ -17,12 +19,12 @@
 # Experiment options #
 #--------------------#
 
-exp_name=CPL-004
+exp_name=CPL-6h
 run_start_date="2011-01-01"
-run_duration="3 day"
+run_duration="2 day"
 info_file="nemo.info.$exp_name"
 
-leg_length="1 day"  # Parceque dans MAR c'est plus ou moins : en dur / fixe ?
+leg_length="6 hour"  # Parceque dans MAR c'est plus ou moins : en dur / fixe ?
 rst_freq=${leg_length}
 
 homedir=/home/ucl/elic/phuot/script_cpl_sub2/cpl_submit/
@@ -34,7 +36,7 @@ mar_exe_file=MAR_sivelo2.exe
 xio_exe_file=xios_server.exe
 
 echo ${homedir}
-
+cd ${homedir}
 #------------------#
 # NEMO params      #
 #------------------#
@@ -79,7 +81,7 @@ extralibs_list=""
 
 #sbatch opts
 
-nem_numproc=10
+nem_numproc=4
 xio_numproc=2
 mar_numproc=1
 
@@ -155,17 +157,17 @@ leg_start_date_yyyymmdd=$(date -u -d "${leg_start_date}" +%Y%m%d) # FIXME appear
 YYYY=$(date -d "${leg_start_date}" +%Y)
 MM=$(date -d "${leg_start_date}" +%m)
 DDs=$(date -d "${leg_start_date}" +%d)
+HH=$(date -d "${leg_start_date}" +%H)
 
 YYYYb=$(date -d "${leg_start_date} - ${leg_length}" +%Y)
 MMb=$(date -d "${leg_start_date} - ${leg_length}" +%m)
 DDb=$(date -d "${leg_start_date} - ${leg_length}" +%d)
-
+HHb=$(date -d "${leg_start_date} - ${leg_length}" +%H)
 #----------------------------------------#
 # Create rundir and link / gather files  #
 #----------------------------------------#
 
-
-run_dir=${scratchd}/${exp_name}-${YYYY}-${MM}-${DDs}
+run_dir=${scratchd}/${exp_name}-${YYYY}-${MM}-${DDs}-${HH}
 
 if [ ! -d ${run_dir:?} ]
 then
@@ -183,10 +185,10 @@ source prep_mar.sh
 
 if (( leg_number > 1 ))
 then
-   cp ${scratchd}/${exp_name}-${YYYYb}-${MMb}-${DDb}/${exp_name}*_restart_?ce* ${run_dir}
-   cp ${scratchd}/${exp_name}-${YYYYb}-${MMb}-${DDb}/nemo.info ${run_dir}
-   cp ${scratchd}/${exp_name}-${YYYYb}-${MMb}-${DDb}/${cpl_oce_rst} ${run_dir}
-   cp ${scratchd}/${exp_name}-${YYYYb}-${MMb}-${DDb}/${cpl_atm_rst} ${run_dir}
+   cp ${scratchd}/${exp_name}-${YYYYb}-${MMb}-${DDb}-${HHb}/${exp_name}*_restart_?ce* ${run_dir}
+#  cp ${scratchd}/${exp_name}-${YYYYb}-${MMb}-${DDb}-${HHb}/nemo.info ${run_dir}
+   cp ${scratchd}/${exp_name}-${YYYYb}-${MMb}-${DDb}-${HHb}/${cpl_oce_rst} ${run_dir}
+   cp ${scratchd}/${exp_name}-${YYYYb}-${MMb}-${DDb}-${HHb}/${cpl_atm_rst} ${run_dir}
 fi
 
 (( leg_number > 1 )) && leg_is_restart=true || leg_is_restart=false
@@ -290,34 +292,26 @@ mkdir -p "${outdir}"
 # MAR outputs 
 #-----------------#
 
-#Warning do no deal like this for sub monthly legs
-
-#MMn=$(( $MM + 1))
-
-#if [ $MMn -gt 12 ] ; then
-#   $MMn=1
-#   $YYYYn=$(( $YYYY + 1))
-#fi
-
 # Another way to do it ....
-date_next=$(date -u -d "${leg_end_date:?} + ${leg_length}")
+date_next=${leg_end_date}
 
-YYYYn=$(date -d "${date}" +%Y)
-MMn=$(date -d "${date}" +%m)
-DDn=$(date -d "${date}" +%d)
+YYYYn=$(date -d "${date_next}" +%Y)
+MMn=$(date -d "${date_next}" +%m)
+DDn=$(date -d "${date_next}" +%d)
+HHn=$(date -d "${date_next}" +%H)
 
 gzip ICE*.nc
-tar czf MARsim_${YYYYn}${MMn}${DDn}.tgz MARdom.dat MARcld.DAT MARcva.DAT MARdyn.DAT MARsol.DAT MARsvt.DAT MARtur.DAT
+tar czf MARsim_${YYYYn}${MMn}${DDn}${HHn}.tgz MARdom.dat MARcld.DAT MARcva.DAT MARdyn.DAT MARsol.DAT MARsvt.DAT MARtur.DAT
 
-mv      MARsim_${YYYYn}${MMn}${DDn}.tgz $DIR/MARsim/
-[ ! -f $DIR/MARsim/MARsim_${YYYYn}${MMn}${DDn}.tgz ] && echo "ERROR MARsim_${YYYYn}${MMn}${DDn}.tgz" && exit 8
+mv      MARsim_${YYYYn}${MMn}${DDn}${HHn}.tgz $DIR/MARsim/
+[ ! -f $DIR/MARsim/MARsim_${YYYYn}${MMn}${DDn}${HHn}.tgz ] && echo "ERROR MARsim_${YYYYn}${MMn}${DDn}${HHn}.tgz" && exit 8
 
 
 
-for f in ${exp_name}_${ns}_restart_???_????.nc
-do
-    [ -f "$f" ] && mv "$f" "${outdir}"
-done
+#for f in ${exp_name}_${ns}_restart_???_????.nc
+#do
+#    [ -f "$f" ] && mv "$f" "${outdir}"
+#done
 
 outdir="$archive_dir/log/${formatted_leg_number}"
 mkdir -p "${outdir}"
@@ -349,6 +343,7 @@ cd - >/dev/null
 
 
 if (( leg_end_epoch < run_end_epoch )) ; then
+    cd ${homedir}
     echo "Leg end earlier than end of simulation."
     echo "Submitting another job."
     "qsub" -v PBS_OPTIONS="$@" "$0" | tee -a coral_jobs
