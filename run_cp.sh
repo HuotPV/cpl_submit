@@ -1,12 +1,13 @@
 #!/bin/bash
 #SBATCH --job-name=ADEL24_cpl
-#SBATCH --time=1:20:00
+#SBATCH --time=00:45:00
 #SBATCH --mail-type=ALL
 #SBATCH --open-mode=append
 #SBATCH --switches=1@47:50:00
-#SBATCH --ntasks=13
+#SBATCH --ntasks=7
 #SBATCH --mem-per-cpu=3072
 #SBATCH --output=JAslurm-%j.out
+#SBATCH --partition=debug
 set -ueo pipefail
 
 ##################################################################
@@ -18,7 +19,7 @@ set -ueo pipefail
 # Experiment options #
 #--------------------#
 
-exp_name=CPL-long
+exp_name=CPL-rer
 run_start_date="2011-01-01"
 run_duration="12 month"
 info_file="nemo.info.$exp_name"
@@ -30,11 +31,9 @@ homedir=/home/ucl/elic/phuot/script_cpl_sub2/cpl_submit/
 scratchd=/scratch/ucl/elic/${USER}/
 archive_dir=${scratchd}nemo/archive/${exp_name}
 
-nem_exe_file=nemo.exe
-mar_exe_file=MAR_sivelo2.exe
-xio_exe_file=xios_server.exe
-
-sleep 20 # test
+nem_exe_file=nemo_rep.exe
+mar_exe_file=MAR_rep.exe
+xio_exe_file=xios_rep.exe
 
 echo ${homedir}
 cd ${homedir}
@@ -82,7 +81,7 @@ extralibs_list=""
 
 #sbatch opts
 
-nem_numproc=8
+nem_numproc=4
 xio_numproc=2
 mar_numproc=1
 
@@ -238,6 +237,7 @@ fi
 #---------------------------------------#
 #             Actual run                #
 #---------------------------------------#
+module load ${module_list:?}
 
 #while [ ! -f MAR.OK ] ; do
 pwd
@@ -246,12 +246,13 @@ cd ${run_dir}
 [[ $@ == *verbose* ]] && set -x
 
 
- ulimit -s unlimited
- rm -f MAR.log MARphy.out &> /dev/null
+ulimit -s unlimited
+rm -f MAR.log MARphy.out &> /dev/null
+export OMP_NUM_THREADS=${mar_numproc}
 
- time_begin=$(date +%s)
- mpirun -np "${nem_numproc:?}" ./"${nem_exe_file:?}" : -np "${xio_numproc:?}" ./"${xio_exe_file:?}" :  -np "${mar_numproc}" ./"${mar_exe_file:?}" > log_cpl
- time_end=$(date +%s)
+time_begin=$(date +%s)
+mpirun -np "${nem_numproc:?}" ./"${nem_exe_file:?}" : -np "${xio_numproc:?}" ./"${xio_exe_file:?}" :  -np "${mar_numproc}" ./"${mar_exe_file:?}" > log_cpl
+time_end=$(date +%s)
 
 
  if [ ! -f MAR.OK ] ; then
