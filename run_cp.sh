@@ -19,7 +19,7 @@ set -ueo pipefail
 # Experiment options #
 #--------------------#
 
-exp_name=CPL-rer
+exp_name=CPL-avg
 run_start_date="2011-01-01"
 run_duration="12 month"
 info_file="nemo.info.$exp_name"
@@ -31,9 +31,9 @@ homedir=/home/ucl/elic/phuot/script_cpl_sub2/cpl_submit/
 scratchd=/scratch/ucl/elic/${USER}/
 archive_dir=${scratchd}nemo/archive/${exp_name}
 
-nem_exe_file=nemo_rep.exe
-mar_exe_file=MAR_rep.exe
-xio_exe_file=xios_rep.exe
+nem_exe_file=nemo_oa3.exe
+mar_exe_file=MAR_oa3.exe
+xio_exe_file=xios_oa3.exe
 
 echo ${homedir}
 cd ${homedir}
@@ -62,13 +62,23 @@ DIR="/scratch/ucl/elic/phuot/CK/"
 
 o2afreq=900
 a2ofreq=900
-cploutopt=EXPORTED
+cploutopt=EXPOUT
 cpl_oce_rst=start_ocean_cpl_025.nc
 cpl_atm_rst=start_atmos_cpl_new.nc
 ndx=124
 ndy=144
 mdx=150
 mdy=140
+
+ntranst=2
+ntransd=2
+
+transt1='LOCTRANS SCRIPR'
+transt2='AVERAGE'
+transt3='BILINEAR LR SCALAR LATLON 1'
+transd1='LOCTRANS SCRIPR'
+transd2='AVERAGE'
+transd3='BILINEAR LR SCALAR LATLON 1'
 
 #------------------#
 # Job options      #
@@ -215,7 +225,7 @@ cd $homedir
 # Build the namelist / namcouple
 
 source build_namelist_cfg.sh > namelist_cfg
-source build_namcouple.sh > namcouple
+source build_namcouple_avg.sh > namcouple
 mv namelist_cfg ${run_dir}
 mv namcouple ${run_dir}
 # done in prep_mar.sh for MAR
