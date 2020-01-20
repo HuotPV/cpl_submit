@@ -1,13 +1,12 @@
 #!/bin/bash
 #SBATCH --job-name=ADEL24_cpl
-#SBATCH --time=00:45:00
+#SBATCH --time=01:15:00
 #SBATCH --mail-type=ALL
 #SBATCH --open-mode=append
 #SBATCH --switches=1@47:50:00
-#SBATCH --ntasks=7
+#SBATCH --ntasks=44
 #SBATCH --mem-per-cpu=3072
 #SBATCH --output=JAslurm-%j.out
-#SBATCH --partition=debug
 set -ueo pipefail
 
 ##################################################################
@@ -19,9 +18,9 @@ set -ueo pipefail
 # Experiment options #
 #--------------------#
 
-exp_name=CPL-avg
+exp_name=CPL-24-wgt-rot-pre
 run_start_date="2011-01-01"
-run_duration="12 month"
+run_duration="24 month"
 info_file="nemo.info.$exp_name"
 
 leg_length="1 day"  # Parceque dans MAR c'est plus ou moins : en dur / fixe ?
@@ -32,7 +31,7 @@ scratchd=/scratch/ucl/elic/${USER}/
 archive_dir=${scratchd}nemo/archive/${exp_name}
 
 nem_exe_file=nemo_oa3.exe
-mar_exe_file=MAR_oa3.exe
+mar_exe_file=MAR_pre.exe   # MAR_oa3_wgt4.exe MAR_oa3_ref.exe
 xio_exe_file=xios_oa3.exe
 
 echo ${homedir}
@@ -41,13 +40,13 @@ cd ${homedir}
 # NEMO params      #
 #------------------#
 
-nem_time_step_sec=900
-lim_time_step_sec=900
+nem_time_step_sec=150
+lim_time_step_sec=150
 nem_restart_offset=0
 
-oasis_dir=${scratchd}oasis
+oasis_dir=${scratchd}oasis24
 code_dir=${scratchd}codes
-ini_data_dir=${scratchd}data
+ini_data_dir=${scratchd}data24
 
 #-----------------#
 #    MAR parm     #
@@ -60,13 +59,13 @@ DIR="/scratch/ucl/elic/phuot/CK/"
 # Coupling options #
 #------------------#
 
-o2afreq=900
-a2ofreq=900
-cploutopt=EXPOUT
-cpl_oce_rst=start_ocean_cpl_025.nc
+o2afreq=450
+a2ofreq=450
+cploutopt=EXPORTED
+cpl_oce_rst=start_ocean_cpl_24.nc
 cpl_atm_rst=start_atmos_cpl_new.nc
-ndx=124
-ndy=144
+ndx=532
+ndy=522
 mdx=150
 mdy=140
 
@@ -91,8 +90,8 @@ extralibs_list=""
 
 #sbatch opts
 
-nem_numproc=4
-xio_numproc=2
+nem_numproc=37
+xio_numproc=6
 mar_numproc=1
 
 #------------------#
@@ -158,11 +157,12 @@ leg_end_epoch=$(date -u -d "${leg_start_date:?} + ${leg_length}" +%s)
 leg_end_date=$(date -uR -d@"${leg_end_epoch}")
 leg_length_sec=$(( leg_end_epoch - leg_start_epoch ))
 leg_start_sec=$(( leg_start_epoch - run_start_epoch ))
-leg_length_sec=$(( leg_length_sec - $(leap_days "${leg_start_date}" "${leg_end_date}")*24*3600 ))
-leg_start_sec=$(( leg_start_sec - $(leap_days "${run_start_date}" "${leg_start_date}")*24*3600 ))
+leg_length_sec=$(( leg_length_sec  ))   # I've removed the leap day manager because he couldn't handle daily restarts ....
+leg_start_sec=$(( leg_start_sec  ))
 leg_end_sec=$(( leg_end_epoch - run_start_epoch ))
-leg_end_sec=$(( leg_end_sec - $(leap_days "${run_start_date}" "${leg_end_date}")*24*3600 ))
+leg_end_sec=$(( leg_end_sec ))
 leg_start_date_yyyymmdd=$(date -u -d "${leg_start_date}" +%Y%m%d) # FIXME appears unused
+
 
 YYYY=$(date -d "${leg_start_date}" +%Y)
 MM=$(date -d "${leg_start_date}" +%m)
@@ -184,7 +184,7 @@ then
      mkdir -p ${run_dir}
 fi
 
-source prep_nemo.sh
+source prep_nemo_24.sh
 cd $homedir
 source prep_mar.sh
  [ $? -eq 4 ] && exit #error in prep_mar!
@@ -198,9 +198,8 @@ ns=$(printf %08d $(( leg_start_sec / nem_time_step_sec - nem_restart_offset )))
 if (( leg_number > 1 ))
 then
    cp ${scratchd}/${exp_name}-${YYYYb}-${MMb}-${DDb}/${exp_name}_${ns}_restart_?ce* ${run_dir}
-#  cp ${scratchd}/${exp_name}-${YYYYb}-${MMb}-${DDb}-${HHb}/nemo.info ${run_dir}
-   cp ${scratchd}/${exp_name}-${YYYYb}-${MMb}-${DDb}/${cpl_oce_rst} ${run_dir}
-   cp ${scratchd}/${exp_name}-${YYYYb}-${MMb}-${DDb}/${cpl_atm_rst} ${run_dir}
+#   cp ${scratchd}/${exp_name}-${YYYYb}-${MMb}-${DDb}/${cpl_oce_rst} ${run_dir}  Bidouille pour voir si le pb vient des restarts ...
+#   cp ${scratchd}/${exp_name}-${YYYYb}-${MMb}-${DDb}/${cpl_atm_rst} ${run_dir}
 fi
 
 (( leg_number > 1 )) && leg_is_restart=true || leg_is_restart=false
@@ -224,8 +223,8 @@ cd $homedir
 
 # Build the namelist / namcouple
 
-source build_namelist_cfg.sh > namelist_cfg
-source build_namcouple_avg.sh > namcouple
+source build_namelist_cfg_24.sh > namelist_cfg
+source build_namcouple.sh > namcouple
 mv namelist_cfg ${run_dir}
 mv namcouple ${run_dir}
 # done in prep_mar.sh for MAR

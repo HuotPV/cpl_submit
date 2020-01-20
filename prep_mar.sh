@@ -42,9 +42,9 @@ fi
 
 #MARsim files from previous MAR timestep
 
-if [ -f $DIR/MARsim/MARsim_${YYYY}${MM}${DDs}${HH}.tgz ] ; then
- echo "MARsim: $DIR/MARsim/MARsim_${YYYY}${MM}${DDs}${HH}.tgz" 
- tar xzf $DIR/MARsim/MARsim_${YYYY}${MM}${DDs}${HH}.tgz
+if [ -f $DIR/MARsim/MARsim_${YYYY}${MM}${DDs}.tgz ] ; then
+ echo "MARsim: $DIR/MARsim/MARsim_${YYYY}${MM}${DDs}.tgz" 
+ tar xzf $DIR/MARsim/MARsim_${YYYY}${MM}${DDs}.tgz
  else
  echo "MAR ERROR NO MARsim <<<" && exit 4
 fi
