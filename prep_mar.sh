@@ -1,4 +1,4 @@
-
+#set -x
 [ ${MM} -eq  1 ] && DD=31
 [ ${MM} -eq  2 ] && DD=28
 [ ${MM} -eq  3 ] && DD=31
@@ -42,10 +42,22 @@ fi
 
 #MARsim files from previous MAR timestep
 
-if [ -f $DIR/MARsim/MARsim_${YYYY}${MM}${DDs}.tgz ] ; then
- echo "MARsim: $DIR/MARsim/MARsim_${YYYY}${MM}${DDs}.tgz" 
- tar xzf $DIR/MARsim/MARsim_${YYYY}${MM}${DDs}.tgz
- else
- echo "MAR ERROR NO MARsim <<<" && exit 4
-fi
 
+if [ $USER == ckittel ] ; then 
+
+ if [ -f $scratchd/input_MARsim/${exp_name}/${YYYY}/MARsim_${YYYY}${MM}${DDs}.tgz ] ; then
+  echo "MARsim: $scratchd/input_MARsim/${exp_name}/${YYYY}/MARsim_${YYYY}${MM}${DDs}.tgz" 
+  tar xzf $scratchd/input_MARsim/${exp_name}/${YYYY}/MARsim_${YYYY}${MM}${DDs}.tgz
+  else
+  echo "MAR ERROR NO MARsim <<<" && exit 4
+ fi
+else
+ 
+
+ if [ -f $DIR/MARsim/MARsim_${YYYY}${MM}${DDs}.tgz ] ; then
+  echo "MARsim: $DIR/MARsim/MARsim_${YYYY}${MM}${DDs}.tgz" 
+  tar xzf $DIR/MARsim/MARsim_${YYYY}${MM}${DDs}.tgz
+  else
+  echo "MAR ERROR NO MARsim <<<" && exit 4
+ fi
+fi

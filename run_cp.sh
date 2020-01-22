@@ -6,7 +6,7 @@
 #SBATCH --switches=1@47:50:00
 #SBATCH --ntasks=44
 #SBATCH --mem-per-cpu=3072
-#SBATCH --output=JAslurm-%j.out
+#SBATCH --output=/home/ulg/topoclim/ckittel/modeles/cpl_submit/msg/JAslurm-%j.out
 set -ueo pipefail
 
 ##################################################################
@@ -18,17 +18,26 @@ set -ueo pipefail
 # Experiment options #
 #--------------------#
 
-exp_name=CPL-24-wgt-rot-pre
+exp_name=testck
 run_start_date="2011-01-01"
-run_duration="24 month"
+run_duration="1 month"
 info_file="nemo.info.$exp_name"
 
 leg_length="1 day"  # Parceque dans MAR c'est plus ou moins : en dur / fixe ?
 rst_freq=${leg_length}
 
+if [ $USER == ckittel ] ; then  
+homedir=/home/ulg/topoclim/ckittel/modeles/cpl_submit/
+scratchd=/scratch/ulg/topoclim/$USER/nemo-mar_coupling/
+archive_dir=${scratchd}/out/${exp_name}/nemo-archive/
+archive_dir_mar=${scratchd}/out/${exp_name}/MAR-ICE/
+else
 homedir=/home/ucl/elic/phuot/script_cpl_sub2/cpl_submit/
 scratchd=/scratch/ucl/elic/${USER}/
 archive_dir=${scratchd}nemo/archive/${exp_name}
+fi
+
+
 
 nem_exe_file=nemo_oa3.exe
 mar_exe_file=MAR_pre.exe   # MAR_oa3_wgt4.exe MAR_oa3_ref.exe
@@ -53,7 +62,12 @@ ini_data_dir=${scratchd}data24
 #-----------------#
 
 dt=90
-DIR="/scratch/ucl/elic/phuot/CK/"
+
+if [ $USER == ckittel ] ; then 
+DIR="/scratch/ucl/elic/phuot/CK/" #a changer?
+else
+DIR="/scratch/ucl/elic/phuot/CK/" 
+fi
 
 #------------------#
 # Coupling options #
@@ -223,6 +237,7 @@ cd $homedir
 
 # Build the namelist / namcouple
 
+
 source build_namelist_cfg_24.sh > namelist_cfg
 source build_namcouple.sh > namcouple
 mv namelist_cfg ${run_dir}
@@ -253,6 +268,7 @@ pwd
 cd ${run_dir}
 
 [[ $@ == *verbose* ]] && set -x
+
 
 
 ulimit -s unlimited
@@ -313,11 +329,33 @@ MMn=$(date -d "${date_next}" +%m)
 DDn=$(date -d "${date_next}" +%d)
 #HHn=$(date -d "${date_next}" +%H)
 
-gzip ICE*.nc
+
+
+
+outdir="${archive_dir_mar}/{$YYYY}"
+mkdir -p $outdir
+
+for ICEf in ICE*.nc ; do
+ gzip $ICEf
+ mv ${ICEf}.gz $outdir
+ 
+ [ ! -f $outdir/${ICEf}.gz ] && echo "ERROR ${ICEf}.gz" && exit 8
+
+done
+
+
 tar czf MARsim_${YYYYn}${MMn}${DDn}.tgz MARdom.dat MARcld.DAT MARcva.DAT MARdyn.DAT MARsol.DAT MARsvt.DAT MARtur.DAT
 
+if [ $USER == ckittel ] ; then 
+mkdir -p $scratchd/input_MARsim/${exp_name}/${YYYYn}/
+mv MARsim_${YYYYn}${MMn}${DDn}.tgz $scratchd/input_MARsim/${exp_name}/${YYYYn}/
+[ ! -f $scratchd/input_MARsim/${exp_name}/${YYYYn}/MARsim_${YYYYn}${MMn}${DDn}.tgz ] && echo "ERROR MARsim_${YYYYn}${MMn}${DDn}.tgz" && exit 9
+else
 mv      MARsim_${YYYYn}${MMn}${DDn}.tgz $DIR/MARsim/
-[ ! -f $DIR/MARsim/MARsim_${YYYYn}${MMn}${DDn}.tgz ] && echo "ERROR MARsim_${YYYYn}${MMn}${DDn}${HHn}.tgz" && exit 8
+[ ! -f $DIR/MARsim/MARsim_${YYYYn}${MMn}${DDn}.tgz ] && echo "ERROR MARsim_${YYYYn}${MMn}${DDn}.tgz" && exit 9
+fi
+
+
 
 
 sleep 10 #test
