@@ -403,7 +403,7 @@ rn_bt_cmax = 0.1 !COM ?
    bn_a_i  =    'My_bdy_siconc' ,         24        , 'ileadfra' ,     .true.     , .false. ,  'yearly'  ,    ''    ,   ''     , ''
    bn_ht_i =    'My_bdy_sithic' ,         24        , 'iicethic' ,     .true.     , .false. ,  'yearly'  ,    ''    ,   ''     , ''
    bn_ht_s =    'My_bdy_snthic' ,         24        , 'isnowthi' ,     .true.     , .false. ,  'yearly'  ,    ''    ,   ''     , ''
-   cn_dir  =    '/scratch/ucl/elic/phuot/nemo/run/ADEL24_tst/'
+   cn_dir  =   '${run_dir}/' 
    ln_full_vel = .false.
 /
 !-----------------------------------------------------------------------
