@@ -134,8 +134,8 @@ rn_bt_cmax = 0.1 !COM ?
 !-----------------------------------------------------------------------
 !          !  file name                            ! frequency (hours) ! variable  ! time interp. !  clim  ! 'yearly'/ ! weights  ! rotation ! land/sea mask !
 !          !                                       !  (if <0  months)  !   name    !   (logical)  !  (T/F) ! 'monthly' ! filename ! pairing  ! filename      !
-    sn_tem  = 'start_oce_adel24.nc',         -12        ,'thetao' ,    .true.    , .true. , 'yearly'  ,'',   ''     ,    ''
-    sn_sal  = 'start_oce_adel24.nc'       ,         -12        ,'so' ,    .true.    , .true. , 'yearly'  ,'',   ''     ,    ''
+    sn_tem  = 'starttemp.nc',         -12        ,'thetao' ,    .true.    , .true. , 'yearly'  ,'',   ''     ,    ''
+    sn_sal  = 'startsalt.nc'       ,         -12        ,'so' ,    .true.    , .true. , 'yearly'  ,'',   ''     ,    ''
 !
    cn_dir        = './'     !  root directory for the location of the runoff files
    ln_tsd_init   = .true.   !  Initialisation of ocean T & S with T &S input data (T) or not (F)

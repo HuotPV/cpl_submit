@@ -17,8 +17,8 @@ ic_files=(
 
     "ADEL24_fwf_icb.nc => icb_flx.nc"
 
-    "start20_fixed_y2007.nc => starttemp.nc"
-    "start20_fixed_y2007.nc => startsalt.nc"
+    "start24_2011.nc => starttemp.nc"
+    "start24_2011.nc => startsalt.nc"
 
     "bdyT_2D_ORCA20_y2007.nc => My_bdy_zos_y2006.nc"
     "bdyT_2D_ORCA20_y2007.nc => My_bdy_zos_y2007.nc"
@@ -199,4 +199,6 @@ done
 
 echo Preparation completed succesfully
 
+
+cp ${homedir}/namelist_ice_cfg ${run_dir}
 
