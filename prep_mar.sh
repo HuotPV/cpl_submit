@@ -31,7 +31,9 @@ echo "On va dans MAR-src-PV pour le moment ... /!/ "
 cp -r ${DIR}/MAR-src-PV/* ${run_dir}/ #cp MAR.exe, MARdom; ICEvou.dat, RCPsc; MARcst + TROUPLE  #WARNING: MARdom to start from the run
 
 #Input files from NESTOR for MAR
-cp  ${DIR}/NESTOR/${YYYY}/${MM}/*.DAT ${run_dir}/
+
+mar_forcing
+cp  ${DIR}/NESTOR-${mar_forcing}/${YYYY}/${MM}/*.DAT ${run_dir}/
 
 cd ${run_dir}
 if [ -f $mar_exe_file ] ; then

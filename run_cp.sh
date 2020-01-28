@@ -62,6 +62,7 @@ ini_data_dir=${scratchd}data24
 #-----------------#
 
 dt=90
+mar_forcing="ERA5"
 
 if [ $USER == ckittel ] ; then 
 DIR="/scratch/ucl/elic/phuot/CK/" #a changer?
