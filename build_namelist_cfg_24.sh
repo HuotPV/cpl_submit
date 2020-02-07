@@ -87,7 +87,7 @@ cat << EOF
    ln_zco      = .false.   !  z-coordinate - full    steps   (T/F)      ("key_zco" may also be defined)
    ln_zps      = .true.    !  z-coordinate - partial steps   (T/F)
    ln_sco      = .false.   !  s- or hybrid z-s-coordinate    (T/F)
-   ln_isfcav   = .false.    !  ice shelf cavity
+   ln_isfcav   = .true.    !  ice shelf cavity
 /
 !-----------------------------------------------------------------------
 &namzgr_sco    !   s-coordinate or hybrid z-s-coordinate
@@ -175,7 +175,7 @@ rn_bt_cmax = 0.1 !COM ?
                            !  =2 embedded sea-ice (full salt and mass exchanges and pressure)
    ln_rnf      = .false.   !  runoffs                                   (T => fill namsbc_rnf)
    nn_limflx = 0          !  LIM3 Multi-category heat flux formulation (use -1 if LIM3 is not used)
-   nn_isf      = 0         !  ice shelf melting/freezing                (/=0 => fill namsbc_isf)
+   nn_isf      = 1         !  ice shelf melting/freezing                (/=0 => fill namsbc_isf)
                            !  0 = no isf               / 1 = presence of ISF 
                            !  2 = bg03 parametrisation / 3 = rnf file for isf
                            !  4 = ISF are prescribed
@@ -520,8 +520,8 @@ rn_bt_cmax = 0.1 !COM ?
 &namdyn_hpg    !   Hydrostatic pressure gradient option
 !-----------------------------------------------------------------------
    ln_hpg_zps  = .false.   !  z-coordinate - partial steps (interpolation)
-   ln_hpg_sco  = .true.   !  z-coordinate - partial steps (interpolation)
-   ln_hpg_isf  = .false.    !  s-coordinate adapted for isf (standard jacobian formulation)
+   ln_hpg_sco  = .false.   !  z-coordinate - partial steps (interpolation)
+   ln_hpg_isf  = .true.    !  s-coordinate adapted for isf (standard jacobian formulation)
    ln_dynhpg_imp = .false. !  time stepping: semi-implicit time scheme  (T)
                                  !           centered      time scheme  (F)
 /

@@ -17,8 +17,8 @@ ic_files=(
 
     "ADEL24_fwf_icb.nc => icb_flx.nc"
 
-    "start24_2011.nc => starttemp.nc"
-    "start24_2011.nc => startsalt.nc"
+    "start24_winter_2011.nc => starttemp.nc"
+    "start24_winter_2011.nc => startsalt.nc"
 
     "bdyT_2D_ORCA20_y2007.nc => My_bdy_zos_y2006.nc"
     "bdyT_2D_ORCA20_y2007.nc => My_bdy_zos_y2007.nc"
@@ -166,6 +166,7 @@ shared_files=(
 oa_files=(
    "start_atmos_cpl_new.nc"
    "start_ocean_cpl_24.nc"
+   "start_ocean_cpl_24_may.nc"
    "areas.nc"
    "masks.nc"
    "grids.nc"
@@ -201,4 +202,7 @@ echo Preparation completed succesfully
 
 
 cp ${homedir}/namelist_ice_cfg ${run_dir}
+
+cp ${homedir}/ForXIOS/file_def_nemo-lim.xml ${run_dir}
+cp ${homedir}/ForXIOS/file_def_nemo-opa.xml ${run_dir}
 

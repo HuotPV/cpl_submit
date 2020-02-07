@@ -42,10 +42,15 @@ fi
 
 #MARsim files from previous MAR timestep
 
-if [ -f $DIR/MARsim/MARsim_${YYYY}${MM}${DDs}.tgz ] ; then
- echo "MARsim: $DIR/MARsim/MARsim_${YYYY}${MM}${DDs}.tgz" 
- tar xzf $DIR/MARsim/MARsim_${YYYY}${MM}${DDs}.tgz
+if [ -f $DIR/MARsim/MARsim_${exp_name}_${YYYY}${MM}${DDs}.tgz ] ; then
+ echo "MARsim: $DIR/MARsim/MARsim_${exp_name}_${YYYY}${MM}${DDs}.tgz" 
+ tar xzf $DIR/MARsim/MARsim_${exp_name}_${YYYY}${MM}${DDs}.tgz
+else
+ if ((  ${leg_number}==1 )) ; then
+   echo "Initial state: copy MARsim from another sim."
+   cp $DIR/MARsim/MARsim_${YYYY}${MM}${DDs}.tgz $DIR/MARsim/MARsim_${exp_name}_${YYYY}${MM}${DDs}.tgz
  else
- echo "MAR ERROR NO MARsim <<<" && exit 4
+   echo "MAR ERROR NO MARsim <<<" && exit 4
+ fi
 fi
 
