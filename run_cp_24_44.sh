@@ -1,4 +1,13 @@
 #!/bin/bash
+
+##################################################################
+#           Script to run the coupled model NEMO MAR             #
+##################################################################
+
+#--------------------#
+#  Slurm options     #
+#--------------------#
+
 #SBATCH --job-name=oce_ini
 #SBATCH --time=00:15:00
 #SBATCH --mail-type=ALL
@@ -10,33 +19,29 @@
 
 set -ueo pipefail
 
-##################################################################
-#   Script to run the coupled model NEMO MAR                     #
-#   bla bla and stuff                                            #
-##################################################################
-
 #--------------------#
 # Experiment options #
 #--------------------#
 
-exp_name=CPL-oceini     #CPL-24-wgt-rot-pre
+exp_name=CPL-oceini  
 run_start_date="2011-05-01"
 run_duration="2 month"
 info_file="nemo.info.$exp_name"
 
-leg_length="1 day"  # Parceque dans MAR c'est plus ou moins : en dur / fixe ?
+leg_length="1 day"  # divide run_duration in sub jobs of $leg_length
 rst_freq=${leg_length}
 
 homedir=$(pwd)
-scratchd=/scratch/ucl/elic/${USER}/
+scratchd=/scratch/ucl/elic/${USER}/  # EVERYTHING has to be in this scratch (forcing, inputs files, codes ...)
 archive_dir=${scratchd}nemo/archive/${exp_name}
 
 nem_exe_file=nemo_oa3.exe
-mar_exe_file=MAR_12_fix_99.exe   # MAR_oa3_wgt4.exe MAR_oa3_ref.exe
+mar_exe_file=MAR_12_fix_99.exe 
 xio_exe_file=xios_oa3.exe
 
 echo ${homedir}
 cd ${homedir}
+
 #------------------#
 # NEMO params      #
 #------------------#
@@ -53,29 +58,29 @@ ini_data_dir=${scratchd}data24
 #    MAR parm     #
 #-----------------#
 
-dt=90
-DIR="/scratch/ucl/elic/phuot/CK/"
+dt=90                              #MAR time step
+DIR="/scratch/ucl/elic/phuot/CK/"  #MAR code and inputs
 
 #------------------#
 # Coupling options #
 #------------------#
 
-o2afreq=450
-a2ofreq=450
-cploutopt=EXPORTED
-cpl_oce_rst=start_ocean_cpl_24.nc
-cpl_atm_rst=start_atmos_cpl_new.nc
-ndx=532
-ndy=522
-mdx=150
-mdy=140
+o2afreq=450                           # Frequency of ocean to atm exchange 
+a2ofreq=450                           # Frequency of atm to ocean exchange
+cploutopt=EXPORTED                  
+cpl_oce_rst=start_ocean_cpl_24.nc     # Initial restart for exchanged ocean variable
+cpl_atm_rst=start_atmos_cpl_new.nc    # Initial restart for exchanged atmos variable
+ndx=532                               # nx nemo grid
+ndy=522                               # ny  ' ' ' ' 
+mdx=150                               # nx  mar grid
+mdy=140                               # ny  '  '  '
 
-ntranst=2
-ntransd=2
+ntranst=2                             # Number of transformation ocean to atm
+ntransd=2                             #  '     '       '       '  atm to ocean
 
-transt1='LOCTRANS SCRIPR'
-transt2='AVERAGE'
-transt3='BILINEAR LR SCALAR LATLON 1'
+transt1='LOCTRANS SCRIPR'             # Name of transformations ocean 2 atm
+transt2='AVERAGE'                     # Option for trans #1
+transt3='BILINEAR LR SCALAR LATLON 1' # Option for trans #2
 transd1='LOCTRANS SCRIPR'
 transd2='AVERAGE'
 transd3='BILINEAR LR SCALAR LATLON 1'
@@ -86,14 +91,20 @@ transd3='BILINEAR LR SCALAR LATLON 1'
 
 # general opts
 
-module_list="2016a netCDF-Fortran/4.4.4-intel-2016a"
+module_list="2016a netCDF-Fortran/4.4.4-intel-2016a"   # Needed modules ...
 extralibs_list=""
 
 #sbatch opts
 
-nem_numproc=37
-xio_numproc=6
-mar_numproc=1
+nem_numproc=37  # Number of procs for NEMO
+xio_numproc=6   # Number of procs for xios2
+mar_numproc=1   # Number of procs for MAR
+
+
+################################################################################
+#                !!! END OF NORMAL USER MODIFICATION !!!                       #
+################################################################################
+
 
 #------------------#
 # Modules          #
@@ -199,8 +210,6 @@ ns=$(printf %08d $(( leg_start_sec / nem_time_step_sec - nem_restart_offset )))
 if (( leg_number > 1 ))
 then
    cp ${scratchd}/${exp_name}-${YYYYb}-${MMb}-${DDb}/${exp_name}_${ns}_restart_?ce* ${run_dir}
-#   cp ${scratchd}/${exp_name}-${YYYYb}-${MMb}-${DDb}/${cpl_oce_rst} ${run_dir}  Bidouille pour voir si le pb vient des restarts ...
-#   cp ${scratchd}/${exp_name}-${YYYYb}-${MMb}-${DDb}/${cpl_atm_rst} ${run_dir}
 fi
 
 (( leg_number > 1 )) && leg_is_restart=true || leg_is_restart=false
@@ -228,7 +237,6 @@ source build_namelist_cfg_24.sh > namelist_cfg
 source build_namcouple.sh > namcouple
 mv namelist_cfg ${run_dir}
 mv namcouple ${run_dir}
-# done in prep_mar.sh for MAR
 
 cd ${run_dir}
 
@@ -306,13 +314,11 @@ mkdir -p "${outdir}"
 # MAR outputs 
 #-----------------#
 
-# Another way to do it ....
 date_next=${leg_end_date}
 
 YYYYn=$(date -d "${date_next}" +%Y)
 MMn=$(date -d "${date_next}" +%m)
 DDn=$(date -d "${date_next}" +%d)
-#HHn=$(date -d "${date_next}" +%H)
 
 gzip ICE*.nc
 tar czf MARsim_${exp_name}_${YYYYn}${MMn}${DDn}.tgz MARdom.dat MARcld.DAT MARcva.DAT MARdyn.DAT MARsol.DAT MARsvt.DAT MARtur.DAT
@@ -320,14 +326,6 @@ tar czf MARsim_${exp_name}_${YYYYn}${MMn}${DDn}.tgz MARdom.dat MARcld.DAT MARcva
 mv      MARsim_${exp_name}_${YYYYn}${MMn}${DDn}.tgz $DIR/MARsim/
 [ ! -f $DIR/MARsim/MARsim_${exp_name}_${YYYYn}${MMn}${DDn}.tgz ] && echo "ERROR MARsim_${YYYYn}${MMn}${DDn}${HHn}.tgz" && exit 8
 
-
-sleep 10 #test
-
-
-#for f in ${exp_name}_${ns}_restart_???_????.nc
-#do
-#    [ -f "$f" ] && mv "$f" "${outdir}"
-#done
 
 outdir="$archive_dir/log/${formatted_leg_number}"
 mkdir -p "${outdir}"
