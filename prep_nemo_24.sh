@@ -12,8 +12,8 @@ ic_files=(
 
     "start24_cpl.nc => start_oce_adel24.nc"
 
-    "ADEL24_bathynisf_all3.nc => isf_draft_meter.nc"
-    "ADEL24_bathynisf_all3.nc => bathy_meter.nc"
+    "ADEL24_bath_noni.nc => isf_draft_meter.nc"
+    "ADEL24_bath_noni.nc => bathy_meter.nc"
 
     "ADEL24_fwf_icb.nc => icb_flx.nc"
 

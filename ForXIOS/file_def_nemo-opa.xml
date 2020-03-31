@@ -36,33 +36,10 @@
       <field field_ref="taum"      name="taum"    />
       <field field_ref="qns"       name="qns"     />
       <field field_ref="qt"        name="qt"      />
-      <field field_ref="toce"        name="toce"      />
-      <field field_ref="soce"        name="soce"      />
-      <field field_ref="fwfisf"    name="fwfisf"  />
-    </file>
-    <file id="file17" name_suffix="_grid_U" >
-      <field field_ref="uoce"      name="uo"/>
-    </file>
-    <file id="file18" name_suffix="_grid_V" >
-      <field field_ref="voce"      name="vo"/>
+      <field field_ref="qsr"       name="qsr"    />
     </file>
   </file_group>
 
 
-  <file_group id="1m" output_freq="1mo" output_level="10" enabled=".TRUE.">
-    <file id="file6" name_suffix="_SBC" >
-      <field field_ref="qt"        name="qt"      />
-      <field field_ref="qns"       name="qns"     />
-      <field field_ref="qsr"       name="qsr"     />
-      <field field_ref="taum"      name="taum"    />
-      <field field_ref="fwfisf"    name="fwfisf"  />
-      <field field_ref="qisf"      name="qisf"    />
-    </file>
-    <file id="file7" name_suffix="_grid_T">
-      <field field_ref="toce" name="votemper" />
-      <field field_ref="soce" name="vosaline" />
-      <field field_ref="sst" name="sst" />
-      <field field_ref="sss" name="sss" />
-    </file>
-  </file_group>
+  <file_group id="1m" output_freq="1mo" output_level="10" enabled=".TRUE."/>
 </file_definition>

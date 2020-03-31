@@ -148,17 +148,19 @@
         <file id="file13" name_suffix="_icemod" description="ice variables" enabled=".TRUE." >
           <field field_ref="iceconc"          name="siconc"  />
           <field field_ref="vfxice"          name="vfxice"  />
-          <field field_ref="uice_ipa"         name="sivelu" />
-          <field field_ref="vice_ipa"         name="sivelv" />
           <field field_ref="icethic_cea"      name="sithic"     long_name="sea_ice_thickness"        />
       	  <field field_ref="alb_ice"        name="alb_ice" />
-          <field field_ref="vfxopw"           name="vfxopw" />
-          <field field_ref="vfxbom"           name="vfxbom" />
-          <field field_ref="vfxbog"           name="vfxbog" />
           <field field_ref="snowthic_cea"     name="snthic"     long_name="surface_snow_thickness"   />
           <field field_ref="qsr_ice"    name="qsr_ice"/>
           <field field_ref="qns_ice"    name="qns_ice"/>
           <field field_ref="qemp_ice"    name="qemp_ice"/>
+          <field field_ref="vtau_ice"  name="vtau_ice"  unit="N/m2"    />
+          <field field_ref="utau_ice"  name="utau_ice"  unit="N/m2"    />
+          <field field_ref="icetemp_cat"      name="sitem"/>
+          <field field_ref="vfxbog"           name="vfxbog" />
+          <field field_ref="vfxopw"           name="vfxopw" />
+          <field field_ref="qns_cat"           name="qns_cat" />
+          <field field_ref="icethic_cat"      name="sithicat"/>
         </file>
       </file_group>
 

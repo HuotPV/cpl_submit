@@ -1,0 +1,55 @@
+!!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+!! NEMO/LIM-3 : Ice configuration namelist. Overwrites SHARED/namelist_ice_lim3_ref
+!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+!-----------------------------------------------------------------------
+&namicerun     !   Share parameters for dynamics/advection/thermo
+!-----------------------------------------------------------------------
+!   ln_limdiahsb  = .false.         !  check the heat and salt budgets (T) or not (F)
+!   ln_limdiaout  = .false.         !  output the heat and salt budgets (T) or not (F)
+   rn_amax_n        =   0.99       !  maximum tolerated ice concentration NH
+   rn_amax_s        =   0.99       !  maximum tolerated ice concentration SH
+/
+!-----------------------------------------------------------------------
+&namiceini     !   ice initialisation
+!-----------------------------------------------------------------------
+   ln_limini      = .true.          !  activate ice initialization (T) or not (F)
+   rn_thres_sst   =  0.1            !  maximum water temperature with initial ice (degC)
+   rn_hts_ini_n   =  0.1            !  initial real snow thickness (m), North
+   rn_hts_ini_s   =  0.1            !        "            "             South
+   rn_hti_ini_n   =  3.0            !  initial real ice thickness  (m), North
+   rn_hti_ini_s   =  0.4            !        "            "             South
+   rn_ati_ini_n   =  0.9            !  initial ice concentration   (-), North
+   rn_ati_ini_s   =  0.9            !        "            "             South
+   rn_smi_ini_n   =  6.3            !  initial ice salinity     (g/kg), North
+   rn_smi_ini_s   =  6.3            !        "            "             South
+   rn_tmi_ini_n   =  270.           !  initial ice/snw temperature (K), North
+   rn_tmi_ini_s   =  270.           !        "            "             South
+/
+!-----------------------------------------------------------------------
+&namiceitd     !   Ice discretization
+!-----------------------------------------------------------------------
+   rn_himean      =    0.8          !     (nn_catbnd=2) expected domain-average ice thickness (m)
+/
+!-----------------------------------------------------------------------
+&namicedyn     !   ice dynamic
+!-----------------------------------------------------------------------
+
+!rn_kt = 0
+/
+!-----------------------------------------------------------------------
+&namicehdf     !   Ice horizontal diffusion
+!-----------------------------------------------------------------------
+/
+!-----------------------------------------------------------------------
+&namicethd     !   ice thermodynamic
+!-----------------------------------------------------------------------
+/
+!-----------------------------------------------------------------------
+&namicesal     !   ice salinity
+!-----------------------------------------------------------------------
+/
+!-----------------------------------------------------------------------
+&namiceitdme   !   parameters for mechanical redistribution of ice 
+!-----------------------------------------------------------------------
+/

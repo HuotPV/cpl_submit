@@ -8,8 +8,8 @@
 #  Slurm options     #
 #--------------------#
 
-#SBATCH --job-name=oce_ini
-#SBATCH --time=00:15:00
+#SBATCH --job-name=cpl_ref
+#SBATCH --time=00:45:00
 #SBATCH --mail-type=ALL
 #SBATCH --open-mode=append
 #SBATCH --switches=1@47:50:00
@@ -23,7 +23,7 @@ set -ueo pipefail
 # Experiment options #
 #--------------------#
 
-exp_name=CPL-oceini  
+exp_name=CPL-ref00 
 run_start_date="2011-05-01"
 run_duration="2 month"
 info_file="nemo.info.$exp_name"
@@ -35,19 +35,18 @@ homedir=$(pwd)
 scratchd=/scratch/ucl/elic/${USER}/  # EVERYTHING has to be in this scratch (forcing, inputs files, codes ...)
 archive_dir=${scratchd}nemo/archive/${exp_name}
 
-nem_exe_file=nemo_oa3.exe
-mar_exe_file=MAR_12_fix_99.exe 
+nem_exe_file=nemo_oa3_fixsbc.exe
+mar_exe_file=MAR_q22.exe 
 xio_exe_file=xios_oa3.exe
 
 echo ${homedir}
 cd ${homedir}
-
 #------------------#
 # NEMO params      #
 #------------------#
 
 nem_time_step_sec=150
-lim_time_step_sec=150
+lim_time_step_sec=450
 nem_restart_offset=0
 
 oasis_dir=${scratchd}oasis24
@@ -67,7 +66,7 @@ DIR="/scratch/ucl/elic/phuot/CK/"  #MAR code and inputs
 
 o2afreq=450                           # Frequency of ocean to atm exchange 
 a2ofreq=450                           # Frequency of atm to ocean exchange
-cploutopt=EXPORTED                  
+cploutopt=EXPOUT                  
 cpl_oce_rst=start_ocean_cpl_24.nc     # Initial restart for exchanged ocean variable
 cpl_atm_rst=start_atmos_cpl_new.nc    # Initial restart for exchanged atmos variable
 ndx=532                               # nx nemo grid
@@ -210,6 +209,8 @@ ns=$(printf %08d $(( leg_start_sec / nem_time_step_sec - nem_restart_offset )))
 if (( leg_number > 1 ))
 then
    cp ${scratchd}/${exp_name}-${YYYYb}-${MMb}-${DDb}/${exp_name}_${ns}_restart_?ce* ${run_dir}
+   cp ${scratchd}/${exp_name}-${YYYYb}-${MMb}-${DDb}/${cpl_oce_rst} ${run_dir}
+   cp ${scratchd}/${exp_name}-${YYYYb}-${MMb}-${DDb}/${cpl_atm_rst} ${run_dir}
 fi
 
 (( leg_number > 1 )) && leg_is_restart=true || leg_is_restart=false
@@ -291,21 +292,6 @@ outdir="${archive_dir:?}/output/${formatted_leg_number}"
 mkdir -p "${outdir}"
 
 shopt -s nullglob
-for v in grid_U grid_V grid_W grid_T icemod icemoa SBC SBC_scalar scalar
-do
-    for f in ${exp_name}_??_????????_????????_${v}_????.nc
-    do
-         mv "$f" "$outdir/"
-    done
-    for f in ${exp_name}_??_????????_????????_${v}.nc
-    do
-         mv "$f" "$outdir/"
-    done
-    for f in ${exp_name}_??_${v}.nc
-    do
-        mv "$f" "$outdir/"
-    done
-done
 
 outdir="$archive_dir/restart/${formatted_leg_number}"
 mkdir -p "${outdir}"

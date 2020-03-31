@@ -1,4 +1,4 @@
-#set -x
+
 [ ${MM} -eq  1 ] && DD=31
 [ ${MM} -eq  2 ] && DD=28
 [ ${MM} -eq  3 ] && DD=31
@@ -31,9 +31,7 @@ echo "On va dans MAR-src-PV pour le moment ... /!/ "
 cp -r ${DIR}/MAR-src-PV/* ${run_dir}/ #cp MAR.exe, MARdom; ICEvou.dat, RCPsc; MARcst + TROUPLE  #WARNING: MARdom to start from the run
 
 #Input files from NESTOR for MAR
-
-mar_forcing
-cp  ${DIR}/NESTOR-${mar_forcing}/${YYYY}/${MM}/*.DAT ${run_dir}/
+cp  ${DIR}/NESTOR/${YYYY}/${MM}/*.DAT ${run_dir}/
 
 cd ${run_dir}
 if [ -f $mar_exe_file ] ; then
@@ -44,26 +42,10 @@ fi
 
 #MARsim files from previous MAR timestep
 
-if [ $USER == ckittel ] ; then 
-
- if [ -f $scratchd/input_MARsim/${exp_name}/${YYYY}/MARsim_${YYYY}${MM}${DDs}.tgz ] ; then
-  echo "MARsim: $scratchd/input_MARsim/${exp_name}/${YYYY}/MARsim_${YYYY}${MM}${DDs}.tgz" 
-  tar xzf $scratchd/input_MARsim/${exp_name}/${YYYY}/MARsim_${YYYY}${MM}${DDs}.tgz
-  else
-  echo "MAR ERROR NO MARsim <<<" && exit 4
- fi
-else
- 
 if [ -f $DIR/MARsim/MARsim_${exp_name}_${YYYY}${MM}${DDs}.tgz ] ; then
  echo "MARsim: $DIR/MARsim/MARsim_${exp_name}_${YYYY}${MM}${DDs}.tgz" 
  tar xzf $DIR/MARsim/MARsim_${exp_name}_${YYYY}${MM}${DDs}.tgz
-else
- if ((  ${leg_number}==1 )) ; then
-   echo "Initial state: copy MARsim from another sim."
-   cp $DIR/MARsim/MARsim_${YYYY}${MM}${DDs}.tgz $DIR/MARsim/MARsim_${exp_name}_${YYYY}${MM}${DDs}.tgz
  else
-   echo "MAR ERROR NO MARsim <<<" && exit 4
- fi
+ echo "MAR ERROR NO MARsim <<<" && exit 4
 fi
 
-fi
