@@ -41,7 +41,10 @@ else
 fi
 
 #MARsim files from previous MAR timestep
-
+if (( leg_number == 1 )) ; then
+ echo "First leg, duplicate reference MARsim"
+ cp $DIR/MARsim/MARsim_${YYYY}${MM}${DDs}.tgz $DIR/MARsim/MARsim_${exp_name}_${YYYY}${MM}${DDs}.tgz
+fi
 if [ -f $DIR/MARsim/MARsim_${exp_name}_${YYYY}${MM}${DDs}.tgz ] ; then
  echo "MARsim: $DIR/MARsim/MARsim_${exp_name}_${YYYY}${MM}${DDs}.tgz" 
  tar xzf $DIR/MARsim/MARsim_${exp_name}_${YYYY}${MM}${DDs}.tgz
