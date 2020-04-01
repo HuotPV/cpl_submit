@@ -159,7 +159,6 @@
           <field field_ref="icetemp_cat"      name="sitem"/>
           <field field_ref="vfxbog"           name="vfxbog" />
           <field field_ref="vfxopw"           name="vfxopw" />
-          <field field_ref="qns_cat"           name="qns_cat" />
           <field field_ref="icethic_cat"      name="sithicat"/>
         </file>
       </file_group>
