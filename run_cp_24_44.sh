@@ -8,7 +8,7 @@
 #  Slurm options     #
 #--------------------#
 
-#SBATCH --job-name=apr_ly2
+#SBATCH --job-name=CPL-ref00
 #SBATCH --time=00:40:00
 #SBATCH --mail-type=ALL
 #SBATCH --open-mode=append
@@ -23,9 +23,9 @@ set -ueo pipefail
 # Experiment options #
 #--------------------#
 
-exp_name=CPL-april-ly2
-run_start_date="2012-02-27"
-run_duration="5 day"
+exp_name=CPL-ref00
+run_start_date="2011-05-01"
+run_duration="10 day"
 info_file="nemo.info.$exp_name"
 
 leg_length="1 day"  # divide run_duration in sub jobs of $leg_length
@@ -192,50 +192,6 @@ if [ "$leg_length" = "1 day" ]; then
         fi
 fi
 
-=======
-	echo "Assume that leg length is longer than one day, use coral way of treating leap days."
-
-        # find run start and end, and leg duration !
-        run_start_date=$(date -uR -d "${run_start_date}")
-        run_end_date="${run_start_date} + ${run_duration:?}"
-        run_end_date=$(date -uR -d "${run_end_date}")
-        run_start_epoch=$(date -u -d"${run_start_date}" +%s)
-        run_end_epoch=$(date -u -d"${run_end_date}" +%s)
-
-        # Maybe we need to find a way to bypass this if info_file exists but we don't want to use it ?
-        [[ -r "${ini_data_dir}/${info_file:?}" ]] && source "${ini_data_dir}/${info_file:?}"  # READ info file if it exist ?
-
-        leg_start_date=${leg_end_date:-$run_start_date}
-        leg_start_month=$(date -u -d "${leg_start_date}" +%m)
-        leg_start_day=$(date -u -d "${leg_start_date}" +%d)
-
-        leg_number=$((${leg_number:=0}+1))
-        leg_start_epoch=$(date -u -d "${leg_start_date}" +%s)
-        leg_end_epoch=$(date -u -d "${leg_start_date:?} + ${leg_length}" +%s)
-        leg_end_date=$(date -uR -d@"${leg_end_epoch}")
-        leg_length_sec=$(( leg_end_epoch - leg_start_epoch ))
-        leg_start_sec=$(( leg_start_epoch - run_start_epoch ))
-        leg_end_sec=$(( leg_end_epoch - run_start_epoch ))
-
-        leg_length_sec=$(( leg_length_sec - $(leap_days "${leg_start_date}" "${leg_end_date}")*24*3600 ))
-        leg_start_sec=$(( leg_start_sec - $(leap_days "${run_start_date}" "${leg_start_date}")*24*3600 ))
-        leg_end_sec=$(( leg_end_sec - $(leap_days "${run_start_date}" "${leg_end_date}")*24*3600 ))
-
-	if [ "$leg_length" = "1 day" ]; then
-		mm=$(date -d "${leg_start_date}" +%m)
-                dd=$(date -d "${leg_start_date}" +%d)
-		if (( mm==02 & dd=="28")); then
-			echo "It is supposed to be a leap day"
-			leg_end_ep=$(date -u -d "${leg_start_date:?} + ${leg_length} + ${leg_length}" +%s)
-                        leg_end_epoch=$(date -u -d "${leg_start_date:?} + ${leg_length}" +%s)
-			leg_end_date=$(date -uR -d@"${leg_end_ep}")
-	        	leg_length_sec=$(( leg_end_epoch - leg_start_epoch ))
-	        	leg_start_sec=$(( leg_start_epoch - run_start_epoch ))
-		        leg_end_sec=$(( leg_end_epoch - run_start_epoch ))
-
-		fi
-	fi
->>>>>>> 547d6e53a3b545a316e5412d1380de0b85dece7f
 leg_start_date_yyyymmdd=$(date -u -d "${leg_start_date}" +%Y%m%d)
 
 YYYY=$(date -d "${leg_start_date}" +%Y)
