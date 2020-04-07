@@ -35,7 +35,7 @@ homedir=$(pwd)
 scratchd=/scratch/ucl/elic/${USER}/  # EVERYTHING has to be in this scratch (forcing, inputs files, codes ...)
 archive_dir=${scratchd}nemo/archive/${exp_name}
 
-nem_exe_file=nemo_oa3_fixsbc.exe
+nem_exe_file=nemo_oa3_fixrad.exe
 mar_exe_file=MAR_q22.exe 
 xio_exe_file=xios_oa3.exe
 
@@ -66,7 +66,7 @@ DIR="/scratch/ucl/elic/phuot/CK/"  #MAR code and inputs
 
 o2afreq=450                           # Frequency of ocean to atm exchange 
 a2ofreq=450                           # Frequency of atm to ocean exchange
-cploutopt=EXPOUT                  
+cploutopt=EXPORTED                  
 cpl_oce_rst=start_ocean_cpl_24.nc     # Initial restart for exchanged ocean variable
 cpl_atm_rst=start_atmos_cpl_new.nc    # Initial restart for exchanged atmos variable
 ndx=532                               # nx nemo grid
@@ -172,8 +172,26 @@ leg_length_sec=$(( leg_length_sec  ))   # I've removed the leap day manager beca
 leg_start_sec=$(( leg_start_sec  ))
 leg_end_sec=$(( leg_end_epoch - run_start_epoch ))
 leg_end_sec=$(( leg_end_sec ))
-leg_start_date_yyyymmdd=$(date -u -d "${leg_start_date}" +%Y%m%d) # FIXME appears unused
 
+leg_length_sec=$(( leg_length_sec - $(leap_days "${leg_start_date}" "${leg_end_date}")*24*3600 ))
+leg_start_sec=$(( leg_start_sec - $(leap_days "${run_start_date}" "${leg_start_date}")*24*3600 ))
+leg_end_sec=$(( leg_end_sec - $(leap_days "${run_start_date}" "${leg_end_date}")*24*3600 ))
+
+if [ "$leg_length" = "1 day" ]; then
+	mm=$(date -d "${leg_end_date}" +%m)
+        dd=$(date -d "${leg_end_date}" +%d)
+        if (( mm==02 & dd=="29")); then
+        	echo "Next day should be 29th of feb, but we go to 1st of march directly."
+                leg_end_ep=$(date -u -d "${leg_start_date:?} + ${leg_length} + ${leg_length}" +%s)
+                leg_end_epoch=$(date -u -d "${leg_start_date:?} + ${leg_length}" +%s)
+                leg_end_date=$(date -uR -d@"${leg_end_ep}")
+                leg_length_sec=$(( leg_end_epoch - leg_start_epoch ))
+                leg_start_sec=$(( leg_start_epoch - run_start_epoch ))
+                leg_end_sec=$(( leg_end_epoch - run_start_epoch ))
+        fi
+fi
+
+leg_start_date_yyyymmdd=$(date -u -d "${leg_start_date}" +%Y%m%d)
 
 YYYY=$(date -d "${leg_start_date}" +%Y)
 MM=$(date -d "${leg_start_date}" +%m)
@@ -209,8 +227,8 @@ ns=$(printf %08d $(( leg_start_sec / nem_time_step_sec - nem_restart_offset )))
 if (( leg_number > 1 ))
 then
    cp ${scratchd}/${exp_name}-${YYYYb}-${MMb}-${DDb}/${exp_name}_${ns}_restart_?ce* ${run_dir}
-   cp ${scratchd}/${exp_name}-${YYYYb}-${MMb}-${DDb}/${cpl_oce_rst} ${run_dir}
-   cp ${scratchd}/${exp_name}-${YYYYb}-${MMb}-${DDb}/${cpl_atm_rst} ${run_dir}
+#   cp ${scratchd}/${exp_name}-${YYYYb}-${MMb}-${DDb}/${cpl_oce_rst} ${run_dir}
+#   cp ${scratchd}/${exp_name}-${YYYYb}-${MMb}-${DDb}/${cpl_atm_rst} ${run_dir}
 fi
 
 (( leg_number > 1 )) && leg_is_restart=true || leg_is_restart=false
