@@ -409,8 +409,7 @@ rn_bt_cmax = 0.1 !COM ?
 !-----------------------------------------------------------------------
 &nambdy_tide     ! tidal forcing at open boundaries
 !-----------------------------------------------------------------------
-   filtide      = '${run_dir}/'         !  file name root of tidal forcing files
-
+   filtide      = 'ORCA20_bdytide_'         !  file name root of tidal forcing files
 /
 !!======================================================================
 !!                 ***  Bottom boundary condition  ***
