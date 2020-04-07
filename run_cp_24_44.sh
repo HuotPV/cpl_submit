@@ -9,7 +9,7 @@
 #--------------------#
 
 #SBATCH --job-name=apr_ly2
-#SBATCH --time=01:40:00
+#SBATCH --time=00:40:00
 #SBATCH --mail-type=ALL
 #SBATCH --open-mode=append
 #SBATCH --switches=1@47:50:00
@@ -24,11 +24,11 @@ set -ueo pipefail
 #--------------------#
 
 exp_name=CPL-april-ly2
-run_start_date="2012-02-24"
-run_duration="9 day"
+run_start_date="2012-02-27"
+run_duration="5 day"
 info_file="nemo.info.$exp_name"
 
-leg_length="3 day"  # divide run_duration in sub jobs of $leg_length
+leg_length="1 day"  # divide run_duration in sub jobs of $leg_length
 rst_freq=${leg_length}
 
 homedir=$(pwd)
@@ -151,6 +151,48 @@ function leap_days()
 
 cd ${homedir}
 
+<<<<<<< HEAD
+# find run start and end, and leg duration !
+run_start_date=$(date -uR -d "${run_start_date}")
+run_end_date="${run_start_date} + ${run_duration:?}"
+run_end_date=$(date -uR -d "${run_end_date}")
+run_start_epoch=$(date -u -d"${run_start_date}" +%s)
+run_end_epoch=$(date -u -d"${run_end_date}" +%s)
+
+# Maybe we need to find a way to bypass this if info_file exists but we don't want to use it ?
+[[ -r "${ini_data_dir}/${info_file:?}" ]] && source "${ini_data_dir}/${info_file:?}"  # READ info file if it exist ?
+
+leg_start_date=${leg_end_date:-$run_start_date}
+leg_number=$((${leg_number:=0}+1))
+leg_start_epoch=$(date -u -d "${leg_start_date}" +%s)
+leg_end_epoch=$(date -u -d "${leg_start_date:?} + ${leg_length}" +%s)
+leg_end_date=$(date -uR -d@"${leg_end_epoch}")
+leg_length_sec=$(( leg_end_epoch - leg_start_epoch ))
+leg_start_sec=$(( leg_start_epoch - run_start_epoch ))
+leg_length_sec=$(( leg_length_sec  ))   # I've removed the leap day manager because he couldn't handle daily restarts ....
+leg_start_sec=$(( leg_start_sec  ))
+leg_end_sec=$(( leg_end_epoch - run_start_epoch ))
+leg_end_sec=$(( leg_end_sec ))
+
+leg_length_sec=$(( leg_length_sec - $(leap_days "${leg_start_date}" "${leg_end_date}")*24*3600 ))
+leg_start_sec=$(( leg_start_sec - $(leap_days "${run_start_date}" "${leg_start_date}")*24*3600 ))
+leg_end_sec=$(( leg_end_sec - $(leap_days "${run_start_date}" "${leg_end_date}")*24*3600 ))
+
+if [ "$leg_length" = "1 day" ]; then
+	mm=$(date -d "${leg_end_date}" +%m)
+        dd=$(date -d "${leg_end_date}" +%d)
+        if (( mm==02 & dd=="29")); then
+        	echo "Next day should be 29th of feb, but we go to 1st of march directly."
+                leg_end_ep=$(date -u -d "${leg_start_date:?} + ${leg_length} + ${leg_length}" +%s)
+                leg_end_epoch=$(date -u -d "${leg_start_date:?} + ${leg_length}" +%s)
+                leg_end_date=$(date -uR -d@"${leg_end_ep}")
+                leg_length_sec=$(( leg_end_epoch - leg_start_epoch ))
+                leg_start_sec=$(( leg_start_epoch - run_start_epoch ))
+                leg_end_sec=$(( leg_end_epoch - run_start_epoch ))
+        fi
+fi
+
+=======
 	echo "Assume that leg length is longer than one day, use coral way of treating leap days."
 
         # find run start and end, and leg duration !
@@ -193,6 +235,7 @@ cd ${homedir}
 
 		fi
 	fi
+>>>>>>> 547d6e53a3b545a316e5412d1380de0b85dece7f
 leg_start_date_yyyymmdd=$(date -u -d "${leg_start_date}" +%Y%m%d)
 
 YYYY=$(date -d "${leg_start_date}" +%Y)
