@@ -9,7 +9,7 @@
 #--------------------#
 
 #SBATCH --job-name=apr_ly2
-#SBATCH --time=00:40:00
+#SBATCH --time=01:40:00
 #SBATCH --mail-type=ALL
 #SBATCH --open-mode=append
 #SBATCH --switches=1@47:50:00
@@ -24,11 +24,11 @@ set -ueo pipefail
 #--------------------#
 
 exp_name=CPL-april-ly2
-run_start_date="2012-02-27"
-run_duration="5 day"
+run_start_date="2012-02-24"
+run_duration="9 day"
 info_file="nemo.info.$exp_name"
 
-leg_length="1 day"  # divide run_duration in sub jobs of $leg_length
+leg_length="3 day"  # divide run_duration in sub jobs of $leg_length
 rst_freq=${leg_length}
 
 homedir=$(pwd)
