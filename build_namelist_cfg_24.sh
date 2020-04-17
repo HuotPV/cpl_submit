@@ -119,9 +119,17 @@ cat << EOF
 !-----------------------------------------------------------------------
 &namsplit      !   time splitting parameters                            ("key_dynspg_ts")
 !-----------------------------------------------------------------------
-
-rn_bt_cmax = 0.1 !COM ?
-
+   ln_bt_fw      =    .TRUE.           !  Forward integration of barotropic equations
+   ln_bt_av      =    .TRUE.           !  Time filtering of barotropic variables
+   ln_bt_nn_auto =    .FALSE.           !  Set nn_baro automatically to be just below
+                                       !  a user defined maximum courant number (rn_bt_cmax)
+   nn_baro       =    150               !  Number of iterations of barotropic mode
+                                       !  during rn_rdt seconds. Only used if ln_bt_nn_auto=F
+   rn_bt_cmax    =    0.1              !  Maximum courant number allowed if ln_bt_nn_auto=T
+   nn_bt_flt     =    2                !  Time filter choice
+                                       !  = 0 None
+                                       !  = 1 Boxcar over   nn_baro barotropic steps
+                                       !  = 2 Boxcar over 2*nn_baro     "        "
 /
 !-----------------------------------------------------------------------
 &namcrs        !   Grid coarsening for dynamics output and/or
