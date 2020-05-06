@@ -32,8 +32,17 @@ leg_length="1 day"  # divide run_duration in sub jobs of $leg_length
 rst_freq=${leg_length}
 
 homedir=$(pwd)
+
+if [ $USER == ckittel ] ; then  
+scratchd=/scratch/ulg/topoclim/$USER/nemo-mar_coupling/
+archive_dir=${scratchd}/out/${exp_name}/nemo-archive/
+archive_dir_mar=${scratchd}/out/${exp_name}/MAR-ICE/
+fi
+if [ $USER == phuot ] ; then
 scratchd=/scratch/ucl/elic/${USER}/  # EVERYTHING has to be in this scratch (forcing, inputs files, codes ...)
 archive_dir=${scratchd}nemo/archive/${exp_name}
+fi
+
 
 nem_exe_file=nemo_oa3_fixrad.exe
 mar_exe_file=MAR_q22.exe 
@@ -58,7 +67,8 @@ ini_data_dir=${scratchd}data24
 #-----------------#
 
 dt=90                              #MAR time step
-DIR="/scratch/ucl/elic/phuot/CK/"  #MAR code and inputs
+mar_forcing="ERA5"                 #ERA-Int or ERA5 (or Mertz)
+DIR="/scratch/ucl/elic/phuot/CK/"  #MAR code and inputs 
 
 #------------------#
 # Coupling options #
@@ -237,11 +247,18 @@ source prep_mar.sh
 
 ns=$(printf %08d $(( leg_start_sec / nem_time_step_sec - nem_restart_offset )))
 
+#new restarts 
+if (( leg_number == 1 )) ; then
+echo "WARNING New RESTARTS CK"
+cp /scratch/ulg/topoclim/ckittel/nemo-mar_coupling/${cpl_oce_rst} ${run_dir}
+cp /scratch/ulg/topoclim/ckittel/nemo-mar_coupling/${cpl_atm_rst} ${run_dir}
+fi
+
 if (( leg_number > 1 ))
 then
    cp ${scratchd}/${exp_name}-${YYYYb}-${MMb}-${DDb}/${exp_name}_${ns}_restart_?ce* ${run_dir}
-#   cp ${scratchd}/${exp_name}-${YYYYb}-${MMb}-${DDb}/${cpl_oce_rst} ${run_dir}
-#   cp ${scratchd}/${exp_name}-${YYYYb}-${MMb}-${DDb}/${cpl_atm_rst} ${run_dir}
+   cp ${scratchd}/${exp_name}-${YYYYb}-${MMb}-${DDb}/${cpl_oce_rst} ${run_dir}
+   cp ${scratchd}/${exp_name}-${YYYYb}-${MMb}-${DDb}/${cpl_atm_rst} ${run_dir}
 fi
 
 (( leg_number > 1 )) && leg_is_restart=true || leg_is_restart=false
@@ -337,12 +354,40 @@ YYYYn=$(date -d "${date_next}" +%Y)
 MMn=$(date -d "${date_next}" +%m)
 DDn=$(date -d "${date_next}" +%d)
 
-gzip ICE*.nc
+outdirICE=$outdir
+if [ $USER == ckittel ] ; then
+outdirICE="${archive_dir_mar}/${YYYY}"
+mkdir -p $outdirICE
+fi
+
+for ICEf in ICE*.nc ; do
+ mv ${ICEf} $outdirICE
+ [ ! -f $outdirICE/${ICEf} ] && echo "ERROR ${ICEf}.gz" && exit 8
+done
+
+
+if [ $USER == ckittel ] ; then
+MARsim_r=$scratchd/input_MARsim/${exp_name}/${YYYYn}/
+mkdir -p $MARsim_r
+MARsim=MARsim_${YYYYn}${MMn}${DDn}.tgz
+fi
+
+
+if [ $USER == phuot ] ; then
+MARsim_r=$DIR/MARsim/  #CK: il est deja cree quelque part chez toi?
+MARsim=MARsim_${exp_name}_${YYYYn}${MMn}${DDn}.tgz
+fi
+
+
 tar czf MARsim_${exp_name}_${YYYYn}${MMn}${DDn}.tgz MARdom.dat MARcld.DAT MARcva.DAT MARdyn.DAT MARsol.DAT MARsvt.DAT MARtur.DAT
 
-mv      MARsim_${exp_name}_${YYYYn}${MMn}${DDn}.tgz $DIR/MARsim/
-[ ! -f $DIR/MARsim/MARsim_${exp_name}_${YYYYn}${MMn}${DDn}.tgz ] && echo "ERROR MARsim_${YYYYn}${MMn}${DDn}${HHn}.tgz" && exit 8
+mv      $MARsim $MARsim_r
+[ ! -f $MARsim_r/$MARsim ] && echo "ERROR MARsim_${YYYYn}${MMn}${DDn}${HHn}.tgz" && exit 9
 
+
+#-----------------#
+#NEMO outputs
+#-----------------#
 
 outdir="$archive_dir/log/${formatted_leg_number}"
 mkdir -p "${outdir}"

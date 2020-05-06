@@ -27,11 +27,20 @@ source build_marctr.sh > MARctr.dat #TO DO chemin vers build car a refaire si ne
 cp MARctr.dat ${run_dir}
 
 #General input files for MAR
+
+if [ $USER == ckittel ] ; then
+echo "cp -r ${DIR}/MAR-src-CK/* ${run_dir}"
+cp -r ${DIR}/MAR-src-CK/* ${run_dir}/
+fi
+
+if [ $USER == phuot ] ; then
 echo "On va dans MAR-src-PV pour le moment ... /!/ "
 cp -r ${DIR}/MAR-src-PV/* ${run_dir}/ #cp MAR.exe, MARdom; ICEvou.dat, RCPsc; MARcst + TROUPLE  #WARNING: MARdom to start from the run
+fi
+
 
 #Input files from NESTOR for MAR
-cp  ${DIR}/NESTOR/${YYYY}/${MM}/*.DAT ${run_dir}/
+cp  ${DIR}/NESTOR-${mar_forcing}/${YYYY}/${MM}/*.DAT ${run_dir}/
 
 cd ${run_dir}
 if [ -f $mar_exe_file ] ; then
@@ -41,14 +50,36 @@ else
 fi
 
 #MARsim files from previous MAR timestep
-if (( leg_number == 1 )) ; then
+if (( leg_number == 1 )) ; then #First leg
  echo "First leg, duplicate reference MARsim"
- cp $DIR/MARsim/MARsim_${YYYY}${MM}${DDs}.tgz $DIR/MARsim/MARsim_${exp_name}_${YYYY}${MM}${DDs}.tgz
-fi
-if [ -f $DIR/MARsim/MARsim_${exp_name}_${YYYY}${MM}${DDs}.tgz ] ; then
- echo "MARsim: $DIR/MARsim/MARsim_${exp_name}_${YYYY}${MM}${DDs}.tgz" 
- tar xzf $DIR/MARsim/MARsim_${exp_name}_${YYYY}${MM}${DDs}.tgz
+
+ if [ $USER == ckittel ] ; then
+ MARsim="$scratchd/input_MARsim/MARsim_${YYYY}${MM}${DDs}.tgz"
+ fi
+
+ if [ $USER == phuot ] ; then
+ MARsim="$DIR/MARsim/MARsim_${YYYY}${MM}${DDs}.tgz"
+ fi
+
+ if [ -f $MARsim ] ; then
+  echo "MARsim first time step: $MARsim" 
+  tar xzf $MARsim
  else
- echo "MAR ERROR NO MARsim <<<" && exit 4
-fi
+  echo "MAR ERROR NO MARsim FOR FIRST LEG <<<" && exit 4
+ fi
+
+else #next step
+
+#def of the files
+ if [ $USER == ckittel ] ; then
+  MARsim="$scratchd/input_MARsim/${exp_name}/${YYYY}/MARsim_${YYYY}${MM}${DDs}.tgz"
+ fi
+ if [ $USER == phuot ] ; then
+  MARsim="$DIR/MARsim/MARsim_${exp_name}_${YYYY}${MM}${DDs}.tgz"
+ fi
+
+ if [ -f $MARsim ] ; then
+  echo "MARsim: $MARsim" 
+  tar xzf $MARsim
+ else
 
