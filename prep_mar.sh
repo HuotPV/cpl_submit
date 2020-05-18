@@ -82,5 +82,9 @@ else #next step
  if [ -f $MARsim ] ; then
   echo "MARsim: $MARsim" 
   tar xzf $MARsim
+  tar xzf $MARsim
  else
+  echo "MAR ERROR NO MARsim <<<" && exit 4
+ fi
+fi
 
