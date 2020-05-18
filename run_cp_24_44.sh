@@ -25,7 +25,7 @@ set -ueo pipefail
 #--------------------#
 
 exp_name=CPL-tstst
-run_start_date="2011-04-01"
+run_start_date="2011-06-01"
 run_duration="10 day"
 info_file="nemo.info.$exp_name"
 from_rest=1
@@ -69,7 +69,7 @@ ini_data_dir=${scratchd}data24
 #-----------------#
 
 dt=60                              #MAR time step
-mar_forcing="ERA-Int"                 #ERA-Int or ERA5 (or Mertz)
+mar_forcing="ERAI"                 #ERA-Int or ERA5 (or Mertz)
 DIR="/scratch/ucl/elic/phuot/CK/"  #MAR code and inputs 
 
 #------------------#
