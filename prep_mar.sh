@@ -41,6 +41,7 @@ fi
 
 #Input files from NESTOR for MAR
 cp  ${DIR}/NESTOR-${mar_forcing}/${YYYY}/${MM}/*.DAT ${run_dir}/
+cp  ${DIR}/NESTOR-${mar_forcing}/${YYYYa}/${MMa}/*.DAT ${run_dir}/
 
 cd ${run_dir}
 if [ -f $mar_exe_file ] ; then

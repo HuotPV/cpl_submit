@@ -16,6 +16,7 @@
 #SBATCH --ntasks=44
 #SBATCH --mem-per-cpu=3072
 #SBATCH --output=JAslurm-%j.out
+#SBATCH --partition=batch
 
 set -ueo pipefail
 
@@ -27,6 +28,7 @@ exp_name=CPL-ref00
 run_start_date="2011-05-01"
 run_duration="10 day"
 info_file="nemo.info.$exp_name"
+from_rest=1
 
 leg_length="1 day"  # divide run_duration in sub jobs of $leg_length
 rst_freq=${leg_length}
@@ -45,7 +47,7 @@ fi
 
 
 nem_exe_file=nemo_oa3_fixrad.exe
-mar_exe_file=MAR_q22.exe 
+mar_exe_file=MAR_q22_mai_ref.exe 
 xio_exe_file=xios_oa3.exe
 
 echo ${homedir}
@@ -55,7 +57,7 @@ cd ${homedir}
 #------------------#
 
 nem_time_step_sec=150
-lim_time_step_sec=450
+lim_time_step_sec=600
 nem_restart_offset=0
 
 oasis_dir=${scratchd}oasis24
@@ -66,16 +68,16 @@ ini_data_dir=${scratchd}data24
 #    MAR parm     #
 #-----------------#
 
-dt=90                              #MAR time step
-mar_forcing="ERA5"                 #ERA-Int or ERA5 (or Mertz)
+dt=60                              #MAR time step
+mar_forcing="ERA-Int"                 #ERA-Int or ERA5 (or Mertz)
 DIR="/scratch/ucl/elic/phuot/CK/"  #MAR code and inputs 
 
 #------------------#
 # Coupling options #
 #------------------#
 
-o2afreq=450                           # Frequency of ocean to atm exchange 
-a2ofreq=450                           # Frequency of atm to ocean exchange
+o2afreq=600                           # Frequency of ocean to atm exchange 
+a2ofreq=600                           # Frequency of atm to ocean exchange
 cploutopt=EXPORTED                  
 cpl_oce_rst=start_ocean_cpl_24.nc     # Initial restart for exchanged ocean variable
 cpl_atm_rst=start_atmos_cpl_new.nc    # Initial restart for exchanged atmos variable
@@ -163,11 +165,21 @@ cd ${homedir}
 
 <<<<<<< HEAD
 # find run start and end, and leg duration !
+if (( from_rest == 1 ))
+then
+before_std="${run_start_date} - ${leg_length:?}"
+run_end_date="${run_start_date} + ${run_duration:?}"
+run_start_date=$(date -uR -d "${before_std}")
+run_end_date=$(date -uR -d "${run_end_date}")
+run_start_epoch=$(date -u -d"${run_start_date}" +%s)
+run_end_epoch=$(date -u -d"${run_end_date}" +%s)
+else
 run_start_date=$(date -uR -d "${run_start_date}")
 run_end_date="${run_start_date} + ${run_duration:?}"
 run_end_date=$(date -uR -d "${run_end_date}")
 run_start_epoch=$(date -u -d"${run_start_date}" +%s)
 run_end_epoch=$(date -u -d"${run_end_date}" +%s)
+fi
 
 # Maybe we need to find a way to bypass this if info_file exists but we don't want to use it ?
 [[ -r "${ini_data_dir}/${info_file:?}" ]] && source "${ini_data_dir}/${info_file:?}"  # READ info file if it exist ?
@@ -183,6 +195,7 @@ leg_length_sec=$(( leg_length_sec  ))   # I've removed the leap day manager beca
 leg_start_sec=$(( leg_start_sec  ))
 leg_end_sec=$(( leg_end_epoch - run_start_epoch ))
 leg_end_sec=$(( leg_end_sec ))
+leg_start_date_yyyymmdd=$(date -u -d "${leg_start_date}" +%Y%m%d) # FIXME appears unused
 
 leg_length_sec=$(( leg_length_sec - $(leap_days "${leg_start_date}" "${leg_end_date}")*24*3600 ))
 leg_start_sec=$(( leg_start_sec - $(leap_days "${run_start_date}" "${leg_start_date}")*24*3600 ))
@@ -202,7 +215,6 @@ if [ "$leg_length" = "1 day" ]; then
         fi
 fi
 
-leg_start_date_yyyymmdd=$(date -u -d "${leg_start_date}" +%Y%m%d)
 
 YYYY=$(date -d "${leg_start_date}" +%Y)
 MM=$(date -d "${leg_start_date}" +%m)
@@ -212,6 +224,9 @@ DDs=$(date -d "${leg_start_date}" +%d)
 YYYYb=$(date -d "${leg_start_date} - ${leg_length}" +%Y)
 MMb=$(date -d "${leg_start_date} - ${leg_length}" +%m)
 DDb=$(date -d "${leg_start_date} - ${leg_length}" +%d)
+
+YYYYa=$(date -d "${leg_start_date} + ${leg_length}" +%Y)
+MMa=$(date -d "${leg_start_date} + ${leg_length}" +%m)
 
 if [ "$leg_length" = "1 day" ]; then
 	if (( MMb==02 & DDb=="29")); then
@@ -226,6 +241,47 @@ fi
 # Create rundir and link / gather files  #
 #----------------------------------------#
 
+# Restart management if special restart
+if [ -f ${ini_data_dir}/${info_file} ]; then
+    echo "${info_file} exist, normal restart"
+else
+    if (( from_rest == 0 ))
+    then
+        echo "${info_file} does not exist, normal start"
+    else
+        echo "${info_file} does not exist, force restart"
+        source make_init.sh > debug_init
+        echo "First leg, duplicate reference MARsim"
+
+        [[ -r "${ini_data_dir}/${info_file:?}" ]] && source "${ini_data_dir}/${info_file:?}"  # READ info file if it exist ?
+
+        echo "leg_end_date" ${leg_end_date}
+
+        leg_start_date=${leg_end_date:-$run_start_date}
+        leg_number=$((${leg_number:=0}+1))
+        leg_start_epoch=$(date -u -d "${leg_start_date}" +%s)
+        leg_end_epoch=$(date -u -d "${leg_start_date:?} + ${leg_length}" +%s)
+        leg_end_date=$(date -uR -d@"${leg_end_epoch}")
+        leg_length_sec=$(( leg_end_epoch - leg_start_epoch ))
+        leg_start_sec=$(( leg_start_epoch - run_start_epoch ))
+        leg_length_sec=$(( leg_length_sec  ))   # I've removed the leap day manager because he couldn't handle daily restarts ....
+        leg_start_sec=$(( leg_start_sec  ))
+        leg_end_sec=$(( leg_end_epoch - run_start_epoch ))
+        leg_end_sec=$(( leg_end_sec ))
+        leg_start_date_yyyymmdd=$(date -u -d "${leg_start_date}" +%Y%m%d) # FIXME appears unused
+
+        YYYY=$(date -d "${leg_start_date}" +%Y)
+        MM=$(date -d "${leg_start_date}" +%m)
+        DDs=$(date -d "${leg_start_date}" +%d)
+
+        YYYYb=$(date -d "${leg_start_date} - ${leg_length}" +%Y)
+        MMb=$(date -d "${leg_start_date} - ${leg_length}" +%m)
+        DDb=$(date -d "${leg_start_date} - ${leg_length}" +%d)
+
+        cp $DIR/MARsim/MARsim_${YYYY}${MM}${DDs}.tgz $DIR/MARsim/MARsim_${exp_name}_${YYYY}${MM}${DDs}.tgz
+
+    fi
+fi
 
 
 
@@ -236,8 +292,10 @@ then
      mkdir -p ${run_dir}
 fi
 
+
+cd ${homedir}
 source prep_nemo_24.sh
-cd $homedir
+cd ${homedir}
 source prep_mar.sh
  [ $? -eq 4 ] && exit #error in prep_mar!
 
@@ -290,7 +348,7 @@ mv namcouple ${run_dir}
 cd ${run_dir}
 
 ns=$(printf %08d $(( leg_start_sec / nem_time_step_sec - nem_restart_offset )))
-if ((leg_start_sec > 0 )); then
+if ((leg_number > 1 )); then
 for (( n=0 ; n<nem_numproc ; n++ ))
   do
     np=$(printf %04d ${n})
@@ -306,7 +364,6 @@ fi
 #---------------------------------------#
 module load ${module_list:?}
 
-#while [ ! -f MAR.OK ] ; do
 pwd
 cd ${run_dir}
 
@@ -325,15 +382,11 @@ time_end=$(date +%s)
  if [ ! -f MAR.OK ] ; then
   echo "MAR crash at dt=$dt"
   echo "Crash MAR" && exit 5
-#  tar xzf $DIR/MARsim/MARsim_${YYYY}${MM}.tgz
  fi
-
-#done
 
 #
 # Move outputs and stuff out of rundir 
 #
-
 
 formatted_leg_number=$(printf %03d $((leg_number)))
 outdir="${archive_dir:?}/output/${formatted_leg_number}"
@@ -384,19 +437,9 @@ tar czf MARsim_${exp_name}_${YYYYn}${MMn}${DDn}.tgz MARdom.dat MARcld.DAT MARcva
 mv      $MARsim $MARsim_r
 [ ! -f $MARsim_r/$MARsim ] && echo "ERROR MARsim_${YYYYn}${MMn}${DDn}${HHn}.tgz" && exit 9
 
-
 #-----------------#
-#NEMO outputs
+# Write nemo.info #
 #-----------------#
-
-outdir="$archive_dir/log/${formatted_leg_number}"
-mkdir -p "${outdir}"
-for f in ocean.output time.step solver.stat ; do mv "${f}" "${outdir}"; done
-shopt -u nullglob
-
-#
-# Write nemo.info
-#
    
 tr=$(date -d "0 -$time_begin sec + $time_end sec" +%T) 
 current_date=$(date +'%F %T')

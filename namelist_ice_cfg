@@ -34,7 +34,9 @@
 !-----------------------------------------------------------------------
 &namicedyn     !   ice dynamic
 !-----------------------------------------------------------------------
-
+   nn_nevp        =  900            !  number of EVP subcycles
+   rn_relast      =    0.111        !  ratio of elastic timescale to ice time step: Telast = dt_ice * rn_relast
+   rn_cio         =    6.8e-03      !  ice-ocean drag coefficient (-)
 !rn_kt = 0
 /
 !-----------------------------------------------------------------------
