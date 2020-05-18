@@ -8,7 +8,7 @@
 #  Slurm options     #
 #--------------------#
 
-#SBATCH --job-name=CPL-ref00
+#SBATCH --job-name=CPL-tstst
 #SBATCH --time=00:40:00
 #SBATCH --mail-type=ALL
 #SBATCH --open-mode=append
@@ -24,8 +24,8 @@ set -ueo pipefail
 # Experiment options #
 #--------------------#
 
-exp_name=CPL-ref00
-run_start_date="2011-05-01"
+exp_name=CPL-tstst
+run_start_date="2011-04-01"
 run_duration="10 day"
 info_file="nemo.info.$exp_name"
 from_rest=1
@@ -163,7 +163,6 @@ function leap_days()
 
 cd ${homedir}
 
-<<<<<<< HEAD
 # find run start and end, and leg duration !
 if (( from_rest == 1 ))
 then
