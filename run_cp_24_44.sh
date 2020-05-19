@@ -13,7 +13,7 @@
 #SBATCH --mail-type=ALL
 #SBATCH --open-mode=append
 #SBATCH --switches=1@47:50:00
-#SBATCH --ntasks=44
+#SBATCH --ntasks=46
 #SBATCH --mem-per-cpu=3072
 #SBATCH --output=JAslurm-%j.out
 #SBATCH --partition=batch
@@ -28,7 +28,9 @@ exp_name=CPL-tstst
 run_start_date="2011-06-01"
 run_duration="10 day"
 info_file="nemo.info.$exp_name"
-from_rest=1
+from_rest=1 # Option to start a new run using restart from CPL-april-rfifz0 -> Only possible if run_start E [2011-05-02 -- 2013-04-30]
+            # And if there is no $info_file
+	    # 0 by default
 
 leg_length="1 day"  # divide run_duration in sub jobs of $leg_length
 rst_freq=${leg_length}
@@ -45,13 +47,14 @@ scratchd=/scratch/ucl/elic/${USER}/  # EVERYTHING has to be in this scratch (for
 archive_dir=${scratchd}nemo/archive/${exp_name}
 fi
 
+#-----------------#
+#    Programs     #
+#-----------------#
 
 nem_exe_file=nemo_oa3_fixrad.exe
 mar_exe_file=MAR_q22_mai_ref.exe 
 xio_exe_file=xios_oa3.exe
 
-echo ${homedir}
-cd ${homedir}
 #------------------#
 # NEMO params      #
 #------------------#
@@ -108,7 +111,7 @@ extralibs_list=""
 #sbatch opts
 
 nem_numproc=37  # Number of procs for NEMO
-xio_numproc=6   # Number of procs for xios2
+xio_numproc=8   # Number of procs for xios2
 mar_numproc=1   # Number of procs for MAR
 
 
@@ -125,7 +128,7 @@ module load ${module_list:?}
 export LD_LIBRARY_PATH=${LD_LIBRARY_PATH:+${LD_LIBRARY_PATH}:}"${extralibs_list}"
 
 #--------------------------------------------#
-#    Prepare the RunDIr                      #
+#    Function to count leap days             #
 #--------------------------------------------#
 
 function leap_days()
@@ -157,9 +160,9 @@ function leap_days()
     echo "$ld"
 }
 
-#---------------------------------------#
-#    Actual execution of the thing      #
-#---------------------------------------#
+#---------------------------------------------------------#
+#   Retrive start and time and associated time steps      #
+#---------------------------------------------------------#
 
 cd ${homedir}
 
@@ -218,7 +221,6 @@ fi
 YYYY=$(date -d "${leg_start_date}" +%Y)
 MM=$(date -d "${leg_start_date}" +%m)
 DDs=$(date -d "${leg_start_date}" +%d)
-#HH=$(date -d "${leg_start_date}" +%H)
 
 YYYYb=$(date -d "${leg_start_date} - ${leg_length}" +%Y)
 MMb=$(date -d "${leg_start_date} - ${leg_length}" +%m)
@@ -234,8 +236,6 @@ if [ "$leg_length" = "1 day" ]; then
 	fi
 fi
 
-
-#HHb=$(date -d "${leg_start_date} - ${leg_length}" +%H)
 #----------------------------------------#
 # Create rundir and link / gather files  #
 #----------------------------------------#
@@ -281,7 +281,6 @@ else
 
     fi
 fi
-
 
 
 run_dir=${scratchd}/${exp_name}-${YYYY}-${MM}-${DDs}
