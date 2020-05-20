@@ -10,15 +10,15 @@ ini_data_dir=/scratch/ucl/elic/phuot/data24
 ic_files=(    
     "1_ext-PSY4V3R1_mesh_hgr.nc => coordinates.nc" 
 
-    "start24_cpl.nc => start_oce_adel24.nc"
+    "start24_feb_2011.nc => start_oce_adel24.nc"
 
     "ADEL24_bath_noni.nc => isf_draft_meter.nc"
     "ADEL24_bath_noni.nc => bathy_meter.nc"
 
     "ADEL24_fwf_icb.nc => icb_flx.nc"
 
-    "start24_winter_2011.nc => starttemp.nc"
-    "start24_winter_2011.nc => startsalt.nc"
+    "start24_feb_2011.nc => starttemp.nc"
+    "start24_feb_2011.nc => startsalt.nc"
 
     "bdyT_2D_ORCA20_y2007.nc => My_bdy_zos_y2006.nc"
     "bdyT_2D_ORCA20_y2007.nc => My_bdy_zos_y2007.nc"
