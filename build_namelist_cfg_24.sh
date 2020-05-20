@@ -43,7 +43,7 @@ cat << EOF
                                   !    used if ln_rstart=F or
                                   !    (ln_rstart=T and nn_rstctl=0 or 1)
    ln_rstart     =  ${nemo_restart}     !  start from rest (F) or from a restart file (T)
-   nn_rstctl     =  2             !  restart control ==> activated only if ln_rstart=T
+   nn_rstctl     =  0             !  restart control ==> activated only if ln_rstart=T
                                   !  = 0 nn_date0 read in namelist ; nn_it000 : read in namelist
                                   !  = 1 nn_date0 read in namelist ; nn_it000 : check consistancy between namelist and restart
                                   !  = 2 nn_date0 read in restart  ; nn_it000 : check consistancy between namelist and restart
@@ -193,6 +193,7 @@ cat << EOF
                            !     =1 global mean of e-p-r set to zero at each time step
                            !     =2 annual global mean of e-p-r set to zero
    ln_cpl      = .true.   !  atmosphere coupled   formulation          ( requires key_oasis3 )
+   ln_mixcpl   = .false.   !  forced-coupled mixed formulation          ( requires key_oasis3 )
 /
 !-----------------------------------------------------------------------
 &namsbc_ana    !   analytical surface boundary condition
@@ -209,16 +210,15 @@ cat << EOF
 !-----------------------------------------------------------------------
 &namsbc_core   !   namsbc_core  CORE bulk formulae
 !-----------------------------------------------------------------------
-
-   sn_wndi     = 'drowned_u10_DFS5.2'    ,        3         , 'u10'    ,   .true.     , .false. , 'yearly'  , 'weights_bicub_DFStoADE20.nc' , 'U1'     , ''
-   sn_wndj     = 'drowned_v10_DFS5.2'    ,        3         , 'v10'    ,   .true.     , .false. , 'yearly'  , 'weights_bicub_DFStoADE20.nc' , 'V1'     , ''
-   sn_qsr      = 'drowned_radsw_DFS5.2'  ,        24         , 'radsw'  ,   .true.     , .false. , 'yearly'  , 'weights_bilin_DFStoADE20.nc' , ''       , ''
-   sn_qlw      = 'drowned_radlw_DFS5.2'  ,        24         , 'radlw'  ,   .true.     , .false. , 'yearly'  , 'weights_bilin_DFStoADE20.nc' , ''       , ''
-   sn_tair     = 'drowned_t2_DFS5.2'     ,        3         , 't2'     ,   .true.     , .false. , 'yearly'  , 'weights_bilin_DFStoADE20.nc' , ''       , ''
-   sn_humi     = 'drowned_q2_DFS5.2'     ,        3         , 'q2'     ,   .true.     , .false. , 'yearly'  , 'weights_bilin_DFStoADE20.nc' , ''       , ''
-   sn_prec     = 'drowned_precip_DFS5.2' ,        24         , 'precip' ,   .true.     , .false. , 'yearly'  , 'weights_bilin_DFStoADE20.nc' , ''       , ''
-   sn_snow     = 'drowned_snow_DFS5.2'   ,        24         , 'snow'   ,   .true.     , .false. , 'yearly'  , 'weights_bilin_DFStoADE20.nc' , ''       , ''
-
+   sn_wndi     = 'winds'    ,        3         , 'UU'    ,   .true.     , .false. , 'yearly'  , '' , ''     , ''
+   sn_wndj     = 'winds'    ,        3         , 'VV'    ,   .true.     , .false. , 'yearly'  , '' , ''     , ''
+   sn_qsr      = 'MAR_int'  ,        3         , 'SWD'  ,   .true.     , .false. , 'yearly'  , '' , ''       , ''
+   sn_qlw      = 'MAR_int'  ,        3         , 'LWD'  ,   .true.     , .false. , 'yearly'  , '' , ''       , ''
+   sn_tair     = 'MAR_int'     ,        3         , 'TT'     ,   .true.     , .false. , 'yearly'  , '' , ''       , ''
+   sn_humi     = 'MAR_int'     ,        3         , 'QQ'     ,   .true.     , .false. , 'yearly'  , '' , ''       , ''
+   sn_prec     = 'MAR_int' ,        3         , 'RF' ,   .true.     , .false. , 'yearly'  , '' , ''       , ''
+   sn_snow     = 'MAR_int'   ,        3         , 'SF'   ,   .true.     , .false. , 'yearly'  , '' , ''       , ''
+   rn_vfac     = 1.        !  multiplicative factor for ocean/ice velocity
    rn_zqt      = 2.        !  Air temperature and humidity reference height (m)
 /
 !-----------------------------------------------------------------------

@@ -17,8 +17,11 @@
 #SBATCH --mem-per-cpu=3072
 #SBATCH --output=JAslurm-%j.out
 #SBATCH --partition=batch
+#SBATCH --signal=B:USR1@180
 
 set -ueo pipefail
+
+trap 'timeout' USR1
 
 #--------------------#
 # Experiment options #
@@ -118,6 +121,55 @@ mar_numproc=1   # Number of procs for MAR
 ################################################################################
 #                !!! END OF NORMAL USER MODIFICATION !!!                       #
 ################################################################################
+
+### 'timeout' function is called 3 minutes before we reach time limit, it checks if NEMO and MAR have terminated their tasks
+### and submit the next leg if everything is fine
+### This is a way of 'fixing' the bug of jobs remaining stuck at the last steps ....
+timeout()
+{
+        echo Timeout: job will reach time limit soon
+
+        if [ ! -f MAR.OK ] ; then
+          echo "MAR crash at dt=$dt"
+          echo "Crash MAR" && exit 5
+        #  tar xzf $DIR/MARsim/MARsim_${YYYY}${MM}.tgz
+        fi
+
+        nsnd=$(printf %08d $(( leg_end_sec / nem_time_step_sec - nem_restart_offset )))
+
+        for (( n=0 ; n<nem_numproc ; n++ ))
+        do
+        np=$(printf %04d ${n})
+        [[ -f "${exp_name:?}_${nsnd}_restart_oce_${np}.nc" ]] || { echo "Error: restart file not found." ; exit 2 ; }
+        [[ -f "${exp_name:?}_${nsnd}_restart_ice_${np}.nc" ]] || { echo "Error: restart file not found." ; exit 2 ; }
+        done
+
+        # NEMO restarts and MAR.OK exist, wrap up and prepare next job ....
+
+        date_next=${leg_end_date}
+        YYYYn=$(date -d "${date_next}" +%Y)
+        MMn=$(date -d "${date_next}" +%m)
+        DDn=$(date -d "${date_next}" +%d)
+        #------- Gather MARsim.* -------#
+        tar czf MARsim_${exp_name}_${YYYYn}${MMn}${DDn}.tgz MARdom.dat MARcld.DAT MARcva.DAT MARdyn.DAT MARsol.DAT MARsvt.DAT MARtur.DAT
+
+        mv      MARsim_${exp_name}_${YYYYn}${MMn}${DDn}.tgz $DIR/MARsim/
+        [ ! -f $DIR/MARsim/MARsim_${exp_name}_${YYYYn}${MMn}${DDn}.tgz ] && echo "ERROR MARsim_${YYYYn}${MMn}${DDn}${HHn}.tgz" && exit 8
+
+        #------- Write nemo.info -------#
+        current_date=$(date +'%F %T')
+        {
+          echo "#"
+          echo "# Finished leg at ${current_date} after toto (hh:mm:ss)" 
+          echo "leg_number=${leg_number}"
+          echo "leg_start_date=\"${leg_start_date}\""
+          echo "leg_end_date=\"${leg_end_date}\""
+        } | tee -a "${info_file}"
+
+        cp ${info_file} ${ini_data_dir}/
+
+        scontrol requeue $SLURM_JOB_ID
+}
 
 
 #------------------#
@@ -372,7 +424,7 @@ ulimit -s unlimited
 rm -f MAR.log MARphy.out &> /dev/null
 export OMP_NUM_THREADS=${mar_numproc}
 
-mpirun -np "${nem_numproc:?}" ./"${nem_exe_file:?}" : -np "${xio_numproc:?}" ./"${xio_exe_file:?}" :  -np "${mar_numproc}" ./"${mar_exe_file:?}" > log_cpl
+mpirun -np "${nem_numproc:?}" ./"${nem_exe_file:?}" : -np "${xio_numproc:?}" ./"${xio_exe_file:?}" :  -np "${mar_numproc}" ./"${mar_exe_file:?}"  & wait > log_cpl
 
 
  if [ ! -f MAR.OK ] ; then
@@ -380,19 +432,12 @@ mpirun -np "${nem_numproc:?}" ./"${nem_exe_file:?}" : -np "${xio_numproc:?}" ./"
   echo "Crash MAR" && exit 5
  fi
 
+#---------------------------------------#
+# Move outputs and stuff out of rundir  #
+#---------------------------------------#
 #
-# Move outputs and stuff out of rundir 
+# For now, we leave NEMO outputs and restarts in the rundir
 #
-
-formatted_leg_number=$(printf %03d $((leg_number)))
-outdir="${archive_dir:?}/output/${formatted_leg_number}"
-mkdir -p "${outdir}"
-
-shopt -s nullglob
-
-outdir="$archive_dir/restart/${formatted_leg_number}"
-mkdir -p "${outdir}"
-
 #-----------------#
 # MAR outputs 
 #-----------------#
