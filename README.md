@@ -18,7 +18,7 @@ build_marctr.sh: build MARctr (set MAR time step and ?)
 
 ForXIOS2/file_def*: files specifying NEMO and LIM I/O (fields, frequency ...)
 
-clean.sh: clean slurm logs
+clean_log.sh: clean slurm logs
 
 make_init.sh: used for restarting nemo from another run (ongoing work)
 
