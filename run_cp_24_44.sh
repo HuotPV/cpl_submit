@@ -448,17 +448,6 @@ YYYYn=$(date -d "${date_next}" +%Y)
 MMn=$(date -d "${date_next}" +%m)
 DDn=$(date -d "${date_next}" +%d)
 
-outdirICE=$outdir
-if [ $USER == ckittel ] ; then
-outdirICE="${archive_dir_mar}/${YYYY}"
-mkdir -p $outdirICE
-fi
-
-for ICEf in ICE*.nc ; do
- mv ${ICEf} $outdirICE
- [ ! -f $outdirICE/${ICEf} ] && echo "ERROR ${ICEf}.gz" && exit 8
-done
-
 
 if [ $USER == ckittel ] ; then
 MARsim_r=$scratchd/input_MARsim/${exp_name}/${YYYYn}/
