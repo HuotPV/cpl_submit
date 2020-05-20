@@ -31,7 +31,7 @@ exp_name=CPL-tstst
 run_start_date="2011-06-01"
 run_duration="10 day"
 info_file="nemo.info.$exp_name"
-from_rest=1 # Option to start a new run using restart from CPL-april-rfifz0 -> Only possible if run_start E [2011-05-02 -- 2013-04-30]
+from_rest=0 # Option to start a new run using restart from CPL-april-rfifz0 -> Only possible if run_start E [2011-05-02 -- 2013-04-30]
             # And if there is no $info_file
 	    # 0 by default
 
