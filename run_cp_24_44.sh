@@ -372,9 +372,7 @@ ulimit -s unlimited
 rm -f MAR.log MARphy.out &> /dev/null
 export OMP_NUM_THREADS=${mar_numproc}
 
-time_begin=$(date +%s)
 mpirun -np "${nem_numproc:?}" ./"${nem_exe_file:?}" : -np "${xio_numproc:?}" ./"${xio_exe_file:?}" :  -np "${mar_numproc}" ./"${mar_exe_file:?}" > log_cpl
-time_end=$(date +%s)
 
 
  if [ ! -f MAR.OK ] ; then
@@ -439,11 +437,10 @@ mv      $MARsim $MARsim_r
 # Write nemo.info #
 #-----------------#
    
-tr=$(date -d "0 -$time_begin sec + $time_end sec" +%T) 
 current_date=$(date +'%F %T')
 {
   echo "#"
-  echo "# Finished leg at ${current_date} after ${tr} (hh:mm:ss)" 
+  echo "# Finished leg at ${current_date}" 
   echo "leg_number=${leg_number}"
   echo "leg_start_date=\"${leg_start_date}\""
   echo "leg_end_date=\"${leg_end_date}\""
