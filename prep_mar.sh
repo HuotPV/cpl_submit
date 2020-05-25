@@ -54,13 +54,7 @@ fi
 if (( leg_number == 1 )) ; then #First leg
  echo "First leg, duplicate reference MARsim"
 
- if [ $USER == ckittel ] ; then
- MARsim="$scratchd/input_MARsim/MARsim_${YYYY}${MM}${DDs}.tgz"
- fi
-
- if [ $USER == phuot ] ; then
  MARsim="$DIR/MARsim/MARsim_${YYYY}${MM}${DDs}.tgz"
- fi
 
  if [ -f $MARsim ] ; then
   echo "MARsim first time step: $MARsim" 
@@ -72,12 +66,9 @@ if (( leg_number == 1 )) ; then #First leg
 else #next step
 
 #def of the files
- if [ $USER == ckittel ] ; then
-  MARsim="$scratchd/input_MARsim/${exp_name}/${YYYY}/MARsim_${YYYY}${MM}${DDs}.tgz"
- fi
- if [ $USER == phuot ] ; then
+
   MARsim="$DIR/MARsim/MARsim_${exp_name}_${YYYY}${MM}${DDs}.tgz"
- fi
+
 
  if [ -f $MARsim ] ; then
   echo "MARsim: $MARsim" 

@@ -70,6 +70,15 @@ oasis_dir=${scratchd}oasis24
 code_dir=${scratchd}codes
 ini_data_dir=${scratchd}data24
 
+
+
+if [ $USER == ckittel ] ; then #SPECIAL CK to use exact same files than PV
+oasis_dir=/scratch/ucl/elic/phuot/oasis24
+code_dir=/scratch/ucl/elic/phuot/codes
+ini_data_dir=/scratch/ucl/elic/phuot/data24
+fi
+
+
 #-----------------#
 #    MAR parm     #
 #-----------------#
@@ -154,7 +163,7 @@ timeout()
         tar czf MARsim_${exp_name}_${YYYYn}${MMn}${DDn}.tgz MARdom.dat MARcld.DAT MARcva.DAT MARdyn.DAT MARsol.DAT MARsvt.DAT MARtur.DAT
 
         mv      MARsim_${exp_name}_${YYYYn}${MMn}${DDn}.tgz $DIR/MARsim/
-        [ ! -f $DIR/MARsim/MARsim_${exp_name}_${YYYYn}${MMn}${DDn}.tgz ] && echo "ERROR MARsim_${YYYYn}${MMn}${DDn}${HHn}.tgz" && exit 8
+        [ ! -f $DIR/MARsim/MARsim_${exp_name}_${YYYYn}${MMn}${DDn}.tgz ] && echo "ERROR MARsim_${exp_name}_${YYYYn}${MMn}${DDn}.tgz" && exit 8
 
         #------- Write nemo.info -------#
         current_date=$(date +'%F %T')
@@ -340,6 +349,9 @@ run_dir=${scratchd}/${exp_name}-${YYYY}-${MM}-${DDs}
 if [ ! -d ${run_dir:?} ]
 then
      mkdir -p ${run_dir}
+else 
+    rm -rf ${run_dir}
+    mkdir -p ${run_dir}
 fi
 
 
@@ -448,24 +460,25 @@ YYYYn=$(date -d "${date_next}" +%Y)
 MMn=$(date -d "${date_next}" +%m)
 DDn=$(date -d "${date_next}" +%d)
 
-
+outdirICE=$outdir
 if [ $USER == ckittel ] ; then
-MARsim_r=$scratchd/input_MARsim/${exp_name}/${YYYYn}/
-mkdir -p $MARsim_r
-MARsim=MARsim_${YYYYn}${MMn}${DDn}.tgz
+outdirICE="${archive_dir_mar}/${YYYY}"
+mkdir -p $outdirICE
 fi
 
+for ICEf in ICE*.nc ; do
+ [ ! -f ${ICEf} ] && echo "ERROR ${ICEf}" && exit 8
+done
 
-if [ $USER == phuot ] ; then
-MARsim_r=$DIR/MARsim/  #CK: il est deja cree quelque part chez toi?
+
+MARsim_r=$DIR/MARsim/  #=> Common repo for CK and PV
 MARsim=MARsim_${exp_name}_${YYYYn}${MMn}${DDn}.tgz
-fi
 
 
 tar czf MARsim_${exp_name}_${YYYYn}${MMn}${DDn}.tgz MARdom.dat MARcld.DAT MARcva.DAT MARdyn.DAT MARsol.DAT MARsvt.DAT MARtur.DAT
 
 mv      $MARsim $MARsim_r
-[ ! -f $MARsim_r/$MARsim ] && echo "ERROR MARsim_${YYYYn}${MMn}${DDn}${HHn}.tgz" && exit 9
+[ ! -f $MARsim_r/$MARsim ] && echo "ERROR MARsim_${exp_name}_${YYYYn}${MMn}${DDn}.tgz" && exit 9
 
 #-----------------#
 # Write nemo.info #
@@ -512,4 +525,3 @@ else
 fi
 
 exit 0
-
