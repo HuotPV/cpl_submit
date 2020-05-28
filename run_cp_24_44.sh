@@ -137,13 +137,14 @@ mar_numproc=1   # Number of procs for MAR
 timeout()
 {
         echo Timeout: job will reach time limit soon
+        scancel -s SIGINT $SLURM_JOB_ID
 
         if [ ! -f MAR.OK ] ; then
           echo "MAR crash at dt=$dt"
           echo "Crash MAR" && exit 5
         #  tar xzf $DIR/MARsim/MARsim_${YYYY}${MM}.tgz
-        fi
-
+        fi	
+	
         nsnd=$(printf %08d $(( leg_end_sec / nem_time_step_sec - nem_restart_offset )))
 
         for (( n=0 ; n<nem_numproc ; n++ ))
