@@ -13,6 +13,8 @@
 [ ${MM} -eq 12 ] && DD=31
 echo $MM $DDs
 
+
+
 # need to use leg_length here ....
 
 DDD=$(( ${leg_length_sec} / 86400 ))
@@ -30,12 +32,22 @@ cp MARctr.dat ${run_dir}
 
 if [ $USER == ckittel ] ; then
 echo "cp -r ${DIR}/MAR-src-CK/* ${run_dir}"
-cp -r ${DIR}/MAR-src-CK/* ${run_dir}/
+cp -r ${DIR}/MAR-src-CK/*.DAT ${run_dir}/ 
+cp -r ${DIR}/MAR-src-CK/*.dat ${run_dir}/ 
+cp -r ${DIR}/MAR-src-CK/*.ctr ${run_dir}/ 
+cp -r ${DIR}/MAR-src-CK/${mar_exe_file} ${run_dir}/ 
+cp -r ${DIR}/MAR-src-CK/TROUPLE-150x140.cdf ${run_dir}/ 
+cp -r ${DIR}/MAR-src-CK/TROUPLE-AN10km-150x140.cdf ${run_dir}/
 fi
 
 if [ $USER == phuot ] ; then
 echo "On va dans MAR-src-PV pour le moment ... /!/ "
-cp -r ${DIR}/MAR-src-PV/* ${run_dir}/ #cp MAR.exe, MARdom; ICEvou.dat, RCPsc; MARcst + TROUPLE  #WARNING: MARdom to start from the run
+cp -r ${DIR}/MAR-src-PV/*.DAT ${run_dir}/ 
+cp -r ${DIR}/MAR-src-PV/*.dat ${run_dir}/ 
+cp -r ${DIR}/MAR-src-PV/*.ctr ${run_dir}/ 
+cp -r ${DIR}/MAR-src-PV/${mar_exe_file} ${run_dir}/ 
+cp -r ${DIR}/MAR-src-PV/TROUPLE-150x140.cdf ${run_dir}/ 
+cp -r ${DIR}/MAR-src-PV/TROUPLE-AN10km-150x140.cdf ${run_dir}/ 
 fi
 
 
