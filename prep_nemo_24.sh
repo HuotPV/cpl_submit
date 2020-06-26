@@ -16,6 +16,8 @@ ic_files=(
     "ADEL24_bath_noni.nc => bathy_meter.nc"
 
     "ADEL24_fwf_icb.nc => icb_flx.nc"
+    
+    "ADEL24_icb_2014.nc => icebergs.nc"
 
     "start24_feb_2011.nc => starttemp.nc"
     "start24_feb_2011.nc => startsalt.nc"

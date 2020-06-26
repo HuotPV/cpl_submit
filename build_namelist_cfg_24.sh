@@ -87,7 +87,8 @@ cat << EOF
    ln_zco      = .false.   !  z-coordinate - full    steps   (T/F)      ("key_zco" may also be defined)
    ln_zps      = .true.    !  z-coordinate - partial steps   (T/F)
    ln_sco      = .false.   !  s- or hybrid z-s-coordinate    (T/F)
-   ln_isfcav   = .false.    !  ice shelf cavity
+   ln_isfcav   = .true.    !  ice shelf cavity
+   ln_icbmsk = .true.
 /
 !-----------------------------------------------------------------------
 &namzgr_sco    !   s-coordinate or hybrid z-s-coordinate
@@ -183,7 +184,7 @@ cat << EOF
                            !  =2 embedded sea-ice (full salt and mass exchanges and pressure)
    ln_rnf      = .false.   !  runoffs                                   (T => fill namsbc_rnf)
    nn_limflx = 0          !  LIM3 Multi-category heat flux formulation (use -1 if LIM3 is not used)
-   nn_isf      = 0         !  ice shelf melting/freezing                (/=0 => fill namsbc_isf)
+   nn_isf      = 1         !  ice shelf melting/freezing                (/=0 => fill namsbc_isf)
                            !  0 = no isf               / 1 = presence of ISF 
                            !  2 = bg03 parametrisation / 3 = rnf file for isf
                            !  4 = ISF are prescribed
@@ -193,7 +194,6 @@ cat << EOF
                            !     =1 global mean of e-p-r set to zero at each time step
                            !     =2 annual global mean of e-p-r set to zero
    ln_cpl      = .true.   !  atmosphere coupled   formulation          ( requires key_oasis3 )
-   ln_mixcpl   = .false.   !  forced-coupled mixed formulation          ( requires key_oasis3 )
 /
 !-----------------------------------------------------------------------
 &namsbc_ana    !   analytical surface boundary condition
@@ -372,7 +372,7 @@ cat << EOF
     ln_mask_file   = .false.              !  =T : read mask from file
     cn_mask_file   = 'bdy_msk.nc'                   !  name of mask file (if ln_mask_file=.TRUE.)
     cn_dyn2d       = 'flather'               !
-    nn_dyn2d_dta   =  1                   !  = 0, bdy data are equal to the initial state
+    nn_dyn2d_dta   =  3                   !  = 0, bdy data are equal to the initial state
                                           !  = 1, bdy data are read in 'bdydata   .nc' files
                                           !  = 2, use tidal harmonic forcing data from files
                                           !  = 3, use external data AND tidal harmonic forcing
@@ -527,8 +527,8 @@ cat << EOF
 &namdyn_hpg    !   Hydrostatic pressure gradient option
 !-----------------------------------------------------------------------
    ln_hpg_zps  = .false.   !  z-coordinate - partial steps (interpolation)
-   ln_hpg_sco  = .true.   !  z-coordinate - partial steps (interpolation)
-   ln_hpg_isf  = .false.    !  s-coordinate adapted for isf (standard jacobian formulation)
+   ln_hpg_sco  = .false.   !  z-coordinate - partial steps (interpolation)
+   ln_hpg_isf  = .true.    !  s-coordinate adapted for isf (standard jacobian formulation)
    ln_dynhpg_imp = .false. !  time stepping: semi-implicit time scheme  (T)
                                  !           centered      time scheme  (F)
 /
